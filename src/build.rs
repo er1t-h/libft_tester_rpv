@@ -3,7 +3,6 @@ use std::{path::PathBuf, env};
 extern crate bindgen;
 
 fn main() {
-	println!("cargo:rustc-link-lib=bz2");
 	println!("cargo:rerun-if-changed=wrapper.h");
 	println!("cargo:rustc-link-search=.");
 	println!("cargo:rustc-link-lib=ft");

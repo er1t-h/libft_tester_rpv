@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod test;
 
+#[allow(unused_macros)]
 macro_rules! assert_same_sign {
 	($item1: expr, $item2: expr) => {
 		assert!(
@@ -16,6 +17,7 @@ macro_rules! assert_same_sign {
 	};
 }
 
+#[allow(unused_macros)]
 macro_rules! assert_nzero {
 	($lhs: expr, $rhs: expr) => {
 		assert!(
@@ -28,19 +30,24 @@ macro_rules! assert_nzero {
 	};
 }
 
+#[allow(unused_macros)]
 #[cfg(feature = "verbose")]
 macro_rules! verbose {
 	($($args: expr),+) => {
 		println!($($args),+);
 	};
 }
+#[allow(unused_macros)]
 #[cfg(not(feature = "verbose"))]
 macro_rules! verbose {
 	($($args: expr),+) => {};
 }
 
+#[allow(unused_imports)]
 pub(crate) use assert_same_sign;
+#[allow(unused_imports)]
 pub(crate) use assert_nzero;
+#[allow(unused_imports)]
 pub(crate) use verbose;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
