@@ -2,3 +2,8 @@ mod strlen;
 mod strlcpy;
 mod strlcat;
 mod strncmp;
+mod strchr;
+mod strrchr;
+mod strnstr;
+mod strdup;
+mod strjoin;

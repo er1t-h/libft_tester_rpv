@@ -1,4 +1,3 @@
-use rusty_fork::rusty_fork_test;
 use std::ffi::CString;
 
 // Rust's libc wrapper don't have BSD/string.h to include strlcpy.
@@ -9,7 +8,7 @@ macro_rules! test {
 		test!($name, $to_test, $to_test.len());
 	};
 	($name: ident, $to_test: expr, $to_copy: expr) => {
-		rusty_fork_test!{
+		crate::fork_test!{
 			#![rusty_fork(timeout_ms = 100)]
 
 			#[test]

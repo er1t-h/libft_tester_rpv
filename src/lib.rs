@@ -40,11 +40,68 @@ macro_rules! verbose {
     ($($args: expr),+) => {};
 }
 
+
+#[allow(unused_macros)]
+#[cfg(feature = "fork")]
+macro_rules! fork_test {
+    (#![rusty_fork(timeout_ms = $timeout: expr)]
+     $(
+        $(#[$meta:meta])*
+        fn $test_name:ident() $body:block
+    )*) => {
+        rusty_fork::rusty_fork_test!{
+            #![rusty_fork(timeout_ms = $timeout)]
+            $(
+                $(#[$meta])*
+                fn $test_name() $body
+            )*
+        }
+    };
+    ($(
+        $(#[$meta:meta])*
+        fn $test_name:ident() $body:block
+    )*) => {
+        rusty_fork::rusty_fork_test!{
+            $(
+                $(#[$meta])*
+                fn $test_name() $body
+            )*
+        }
+    };
+}
+#[allow(unused_macros)]
+#[cfg(not(feature = "fork"))]
+macro_rules! fork_test {
+    (#![rusty_fork(timeout_ms = $timeout: expr)]
+     $(
+        $(#[$meta:meta])*
+        fn $test_name:ident() $body:block
+    )*) => { $(
+            $(#[$meta])*
+            fn $test_name() {
+                $body
+            }
+        )*
+    };
+    ($(
+        $(#[$meta:meta])*
+        fn $test_name:ident() $body:block
+    )*) => { $(
+            $(#[$meta])*
+            fn $test_name() {
+                $body
+            }
+        )*
+    };
+}
+
 #[allow(unused_imports)]
 pub(crate) use assert_nzero;
 #[allow(unused_imports)]
 pub(crate) use assert_same_sign;
 #[allow(unused_imports)]
 pub(crate) use verbose;
+#[allow(unused_imports)]
+pub(crate) use fork_test;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
