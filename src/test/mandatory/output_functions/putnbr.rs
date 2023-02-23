@@ -17,6 +17,7 @@ macro_rules! test {
 }
 
 test!(basic, 11037);
+test!(basic_negative, -11037);
 test!(int_min, -2147483648);
 test!(int_max, 2147483647);
 test!(zero, 0);

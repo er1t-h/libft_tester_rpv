@@ -17,6 +17,16 @@ crate::fork_test! {
 	}
 
 	#[test]
+	fn check_overflow() {
+		let user_ret = unsafe { crate::ft_calloc(libc::size_t::MAX, 2) };
+		let user_errno = unsafe { *libc::__errno_location() };
+		unsafe { libc::calloc(libc::size_t::MAX, 2) };
+		let libc_errno = unsafe { *libc::__errno_location() };
+		assert!(user_ret.is_null());
+		assert_ne!(user_errno, libc_errno, "When param1 * param2 overflows, calloc should return an error (NULL). But yours tries to malloc, thus setting ENOMEM");
+	}
+
+	#[test]
 	fn left_zero() {
 		let user_ret = unsafe { crate::ft_calloc(0, 10) };
 		unsafe { libc::free(user_ret) };

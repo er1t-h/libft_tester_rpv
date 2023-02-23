@@ -1,6 +1,4 @@
 use std::ffi::CString;
-#[cfg(feature = "fork")]
-use rusty_fork::rusty_fork_test;
 
 macro_rules! test {
 	($name: ident, $str: expr, $start: expr, $len: expr) => {

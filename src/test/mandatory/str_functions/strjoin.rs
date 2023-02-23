@@ -1,7 +1,5 @@
 use std::{ffi::CString, slice::from_raw_parts};
 use crate::verbose;
-#[cfg(feature = "fork")]
-use rusty_fork::rusty_fork_test;
 
 macro_rules! test {
 	($name: ident, $s1: expr, $s2: expr) => {
