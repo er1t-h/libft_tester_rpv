@@ -9,8 +9,8 @@ macro_rules! test {
 				let user_ret = unsafe {
 					crate::ft_strdup(str.as_ptr())
 				};
-				let content = unsafe { from_raw_parts(user_ret as *mut u8, str.as_bytes().len()) };
-				assert_eq!(str.as_bytes(), content);
+				let content = unsafe { from_raw_parts(user_ret as *mut u8, str.as_bytes_with_nul().len()) };
+				assert_eq!(str.as_bytes_with_nul(), content);
 				unsafe {libc::free(user_ret as *mut libc::c_void)};
 			}
 		}

@@ -28,13 +28,10 @@ cargo test --features <feature_name_1> --features <feature_name_2>...
 
 
 ## Memory leaks check:
-When running a `cargo test`, a file will be generated in `target/debug/deps/libft_rpv-` followed by a random hexadecimal string. Locate it, and use:
-```sh
-valgrind --show-leak-kinds=all --leak-check=full target/debug/deps/<filename>
-```
-The executable generated will have a 16 bytes still reachable. Every cargo test, as simple as it may be, will have it. So just ignore it. But if there's any more byte leaked, then your program is leaking, which should result in instant `Leaks` flag. (unless you're testing with the `fork` feature).\
-If you have multiple executables in your `target/debug/deps`, you can run `cargo clean`, then re-run `cargo test`
-
+After running a `cargo test`, you can run the `quick_valgrind.sh` script.
+It'll take the last executable `cargo` touched, and launch it into valgrind.
+You might between 16 and 448 bytes leak suppressed. Those comes from `cargo` itself,
+or the fork crate that I used. I made ultra specific valgrind suppression files, so it'll probably never conflict with user leaks
 ## What is not tested by this program
 - Norm (As a correcter, be wary, some people found ways of bypass the norminette's check)
 - Malloc protection (if a malloc is not protected, it's a potential crash, so it should be a 0)

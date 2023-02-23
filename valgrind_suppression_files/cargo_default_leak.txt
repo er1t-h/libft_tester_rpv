@@ -1,0 +1,16 @@
+{
+   cargo test default leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_ZN4test9test_main*
+   fun:_ZN4test16test_main_static*
+   fun:_ZN9libft_rpv4main*
+   fun:_ZN4core3ops8function6FnOnce9call_once*
+   fun:_ZN3std10sys_common9backtrace28__rust_begin_short_backtrace*
+   fun:_ZN3std2rt10lang_start28_$u7b$$u7b$closure$u7d$$u7d$*
+   fun:_ZN3std2rt19lang_start_internal*
+   fun:_ZN3std2rt10lang_start*
+   fun:main
+}

@@ -8,14 +8,11 @@ build = "src/build.rs"
 [build-dependencies]
 bindgen = "0.64.0"
 
-[dev-dependencies]
-concat-idents = "1.1.4"
-rusty-fork = "0.3.0"
-
 [dependencies]
+rusty-fork = { version = "0.3.0", optional = true }
 libc = "0.2.139"
 
 [features]
 bonus = []
 verbose = []
-fork = []
+fork = ["rusty-fork"]

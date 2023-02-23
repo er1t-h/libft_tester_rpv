@@ -7,3 +7,4 @@ mod strrchr;
 mod strnstr;
 mod strdup;
 mod strjoin;
+mod strtrim;

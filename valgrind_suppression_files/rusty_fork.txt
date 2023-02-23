@@ -1,0 +1,36 @@
+{
+   Rusty fork leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_ZN5alloc5alloc6Global10alloc_impl*
+   fun:_ZN5alloc5alloc15exchange_malloc*
+   fun:_ZN12wait_timeout3imp5State4init*
+   fun:_ZN4core3ops8function6FnOnce9call_once*
+   fun:_ZN3std4sync4once4Once9call_once28_$u7b$$u7b$closure$u7d$$u7d$*
+   fun:_ZN3std10sys_common4once5futex4Once4call*
+   fun:_ZN3std4sync4once4Once9call_once*
+   fun:_ZN12wait_timeout3imp12wait_timeout*
+   fun:_ZN62_$LT$std..process..Child$u20$as$u20$wait_timeout..ChildExt$GT$12wait_timeout*
+   fun:_ZN10rusty_fork13child_wrapper12ChildWrapper12wait_timeout*
+   fun:_ZN10rusty_fork9fork_test12wait_timeout*
+}
+{
+   Rusty fork leaks 2
+
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:_ZN5alloc5alloc6Global10alloc_impl*
+   fun:_ZN63_$LT$alloc..alloc..Global$u20$as$u20$core..alloc..Allocator$GT$8allocate*
+   fun:_ZN9hashbrown3raw5alloc5inner8do_alloc*
+   fun:_ZN9hashbrown3raw22RawTableInner$LT$A$GT$17new_uninitialized*
+   fun:_ZN9hashbrown3raw22RawTableInner$LT$A$GT$22fallible_with_capacity*
+   fun:_ZN9hashbrown3raw22RawTableInner$LT$A$GT$14prepare_resize*
+   fun:_ZN9hashbrown3raw21RawTable$LT$T$C$A$GT$14reserve_rehash*
+   fun:_ZN9hashbrown3raw21RawTable$LT$T$C$A$GT$7reserve*
+   fun:_ZN9hashbrown3raw21RawTable$LT$T$C$A$GT$6insert*
+   fun:_ZN9hashbrown3map28HashMap$LT$K$C$V$C$S$C$A$GT$6insert*
+   fun:_ZN3std11collections4hash3map24HashMap$LT$K$C$V$C$S$GT$6insert*
+}
