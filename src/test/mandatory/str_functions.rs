@@ -10,3 +10,5 @@ mod strjoin;
 mod strtrim;
 mod substr;
 mod split;
+mod striteri;
+mod strmapi;
