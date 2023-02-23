@@ -3,7 +3,7 @@ use std::ffi::CString;
 macro_rules! test {
 	($name: ident, $str: expr, $to_find: expr) => {
 		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 1000)]
+			#![rusty_fork(timeout_ms = 100)]
 
 			#[test]
 			fn $name() {

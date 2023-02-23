@@ -1,5 +1,7 @@
 use crate::fork_test;
 use crate::verbose;
+#[cfg(feature = "fork")]
+use rusty_fork::rusty_fork_test;
 
 fork_test!{
     #[test]

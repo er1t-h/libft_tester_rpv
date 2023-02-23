@@ -1,0 +1,38 @@
+{
+	Rusty fork leak
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:*rusty_fork*child_wrapper*ChildWrapper*wait_timeout17he178f36826ccfb06E
+}
+{
+   Rusty fork leaks 2
+
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:*hashbrown*
+}
+{
+   Rusty fork leaks 3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:*std*process*Child*wait_timeout*ChildExt*wait_timeout*
+}
+{
+   Cargo test default leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*test*test_main*
+   ...
+   fun:*std*rt*lang_start_internal*
+   fun:*std*rt*lang_start*
+   fun:main
+}

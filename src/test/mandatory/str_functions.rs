@@ -8,3 +8,5 @@ mod strnstr;
 mod strdup;
 mod strjoin;
 mod strtrim;
+mod substr;
+mod split;

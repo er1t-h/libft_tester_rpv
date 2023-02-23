@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod test;
 
+
 #[allow(unused_macros)]
 macro_rules! assert_same_sign {
     ($lhs: expr, $rhs: expr) => {
@@ -76,7 +77,8 @@ macro_rules! fork_test {
      $(
         $(#[$meta:meta])*
         fn $test_name:ident() $body:block
-    )*) => { $(
+    )*) => {
+        $(
             $(#[$meta])*
             fn $test_name() {
                 $body
