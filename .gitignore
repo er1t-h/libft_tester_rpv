@@ -31,3 +31,4 @@ Cargo.lock
 #/Cargo.lock
 
 *.a
+.tests_*
