@@ -2,12 +2,14 @@ use std::ffi::CString;
 
 macro_rules! test {
 	($name: ident, $str: expr) => {
-		#[test]
-		fn $name() {
-			let str = CString::new($str).expect("Cannot create str");
-			let user_ret = unsafe { crate::ft_atoi(str.as_ptr()) };
-			let libc_ret = unsafe { libc::atoi(str.as_ptr()) };
-			assert_eq!(user_ret, libc_ret);
+		crate::fork_test! {
+			#[test]
+			fn $name() {
+				let str = CString::new($str).expect("Cannot create str");
+				let user_ret = unsafe { crate::ft_atoi(str.as_ptr()) };
+				let libc_ret = unsafe { libc::atoi(str.as_ptr()) };
+				assert_eq!(user_ret, libc_ret);
+			}
 		}
 	};
 }

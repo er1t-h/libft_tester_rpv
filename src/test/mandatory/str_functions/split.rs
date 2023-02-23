@@ -44,23 +44,25 @@ test!(only_internal_delimiter, "C'est      un         super       test,        n
 test!(only_external_delimiter, "!!!!!!!!!!!!!!!!!!!!!!!!!!!C'estunsupertest,n'est-cepas?!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", '!');
 test!(many_split, "!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!a!aC!'!estun!sup!!!ertest,n!'!!es!!!!t-cep!!!as?!!!!!fe!!!!!!!!!!!!wqd!!!!!!!!fqef!!!!!!qef!!!!!!!!", '!');
 
-#[test]
-fn null() {
-	let user_ret = unsafe {
-		crate::ft_split(std::ptr::null(), 'v' as i8)
-	};
-	if user_ret.is_null() {
-		verbose!("User chose to return NULL when NULL is given to split");
-		return;
+crate::fork_test! {
+	#[test]
+	fn null() {
+		let user_ret = unsafe {
+			crate::ft_split(std::ptr::null(), 'v' as i8)
+		};
+		if user_ret.is_null() {
+			verbose!("User chose to return NULL when NULL is given to split");
+			return;
+		}
+		if unsafe { *user_ret }.is_null() {
+			verbose!("User chose to allocate an empty array when NULL is given to split");
+			return;
+		}
+		// If you go through here, you handled passing NULL in a way I didn't anticipate.
+		// If you can explain it clearly, you may ignore this failing test.
+		// However, if you let your code crash with this test
+		// because you didn't handle having NULL as an argument, you should get
+		// a Crash flag.
+		panic!("Handled passing NULL to split in a strange way");
 	}
-	if unsafe { *user_ret }.is_null() {
-		verbose!("User chose to allocate an empty array when NULL is given to split");
-		return;
-	}
-	// If you go through here, you handled passing NULL in a way I didn't anticipate.
-	// If you can explain it clearly, you may ignore this failing test.
-	// However, if you let your code crash with this test
-	// because you didn't handle having NULL as an argument, you should get
-	// a Crash flag.
-	panic!("Handled passing NULL to split in a strange way");
 }

@@ -1,9 +1,9 @@
 use crate::fork_test;
 use crate::verbose;
-#[cfg(feature = "fork")]
-use rusty_fork::rusty_fork_test;
 
 fork_test!{
+    #![rusty_fork(timeout_ms = 1000)]
+
     #[test]
     fn test() {
         for i in 0..=255 {

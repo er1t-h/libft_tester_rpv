@@ -3,17 +3,19 @@ use crate::assert_same_sign;
 
 macro_rules! test {
 	($name: ident, $size: expr, $buff1: expr, $buff2: expr) => {
-		#[test]
-		fn $name() {
-			let first_buffer = $buff1;
-			let second_buffer = $buff2;
-			let user_ret = unsafe {
-				crate::ft_memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
-			};
-			let libc_ret = unsafe {
-				libc::memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
-			};
-			assert_same_sign!(libc_ret, user_ret);
+		crate::fork_test! {
+			#[test]
+			fn $name() {
+				let first_buffer = $buff1;
+				let second_buffer = $buff2;
+				let user_ret = unsafe {
+					crate::ft_memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
+				};
+				let libc_ret = unsafe {
+					libc::memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
+				};
+				assert_same_sign!(libc_ret, user_ret);
+			}
 		}
 	};
 	($name: ident, $size: expr, $buff1: expr) => {

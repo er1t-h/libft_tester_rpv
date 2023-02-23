@@ -12,14 +12,16 @@
 
 macro_rules! test {
 	($name: ident, $buffer_size: expr, $to_write: expr) => {
-		#[test]
-		fn $name() {
-			let mut buffer_user = [1_u8; $buffer_size];
-			let mut buffer_libc = [1_u8; $buffer_size];
+		crate::fork_test! {
+			#[test]
+			fn $name() {
+				let mut buffer_user = [1_u8; $buffer_size];
+				let mut buffer_libc = [1_u8; $buffer_size];
 
-			unsafe { crate::ft_bzero(buffer_user.as_mut_ptr() as *mut libc::c_void, $to_write) };
-			unsafe { libc::explicit_bzero(buffer_libc.as_mut_ptr() as *mut libc::c_void, $to_write) };
-			assert_eq!(buffer_libc, buffer_user);
+				unsafe { crate::ft_bzero(buffer_user.as_mut_ptr() as *mut libc::c_void, $to_write) };
+				unsafe { libc::explicit_bzero(buffer_libc.as_mut_ptr() as *mut libc::c_void, $to_write) };
+				assert_eq!(buffer_libc, buffer_user);
+			}
 		}
 	};
 	($name: ident, $buffer_size: expr) => {
