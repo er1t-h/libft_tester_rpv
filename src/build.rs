@@ -6,6 +6,7 @@ fn main() {
     println!("cargo:rerun-if-changed=bindgen/wrapper.h");
     println!("cargo:rerun-if-changed=bindgen/libft.h");
     println!("cargo:rerun-if-changed=bindgen/helper.h");
+    println!("cargo:rerun-if-changed=utils_c_functions/list_utils_functions.c");
     println!("cargo:rerun-if-changed=utils_c_functions/striteri_functions.c");
     println!("cargo:rerun-if-changed=utils_c_functions/strmapi_functions.c");
     println!("cargo:rerun-if-changed=libft.a");
@@ -31,5 +32,6 @@ fn main() {
     cc::Build::new()
         .file("utils_c_functions/striteri_functions.c")
         .file("utils_c_functions/strmapi_functions.c")
+        .file("utils_c_functions/list_utils_functions.c")
         .compile("helper");
 }

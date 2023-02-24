@@ -14,11 +14,11 @@ macro_rules! test {
 					}
 				}
 				for i in (0_usize..$nb).rev() {
-					let current = list;
-					let content = unsafe { (*current).content } as usize;
-					assert_eq!(content, i, "Element mismatch. Either an addback failed, or the order got mixed up.");
+					let tmp = list;
 					list = (unsafe { *list }).next;
-					unsafe { libc::free(current.cast()) };
+					let content = unsafe { (*tmp).content } as usize;
+					assert_eq!(content, i, "Element mismatch. Either an addfront failed, or the order got mixed up.");
+					unsafe { libc::free(tmp.cast()) };
 				}
 			}
 		}
