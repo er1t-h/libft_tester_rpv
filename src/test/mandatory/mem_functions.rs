@@ -4,3 +4,4 @@ mod memchr;
 mod memcmp;
 mod memcpy;
 mod memset;
+mod memmove;
