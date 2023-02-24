@@ -36,3 +36,25 @@
    fun:*std*rt*lang_start*
    fun:main
 }
+{
+   Cargo test default leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*std*env*args_os*
+   ...
+   fun:*std*rt*lang_start*
+   fun:main
+}
+{
+   Cargo test default leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:*alloc*vec*Vec*core*iter*traits*collect*FromIterator*from_iter*
+   ...
+   fun:*std*rt*lang_start*
+   fun:main
+}

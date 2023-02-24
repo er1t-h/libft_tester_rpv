@@ -3,7 +3,6 @@
 #[cfg(test)]
 mod test;
 
-
 #[allow(unused_macros)]
 macro_rules! assert_same_sign {
     ($lhs: expr, $rhs: expr) => {
@@ -40,7 +39,6 @@ macro_rules! verbose {
 macro_rules! verbose {
     ($($args: expr),+) => {};
 }
-
 
 #[allow(unused_macros)]
 #[cfg(feature = "fork")]
@@ -103,8 +101,8 @@ pub(crate) use assert_nzero;
 #[allow(unused_imports)]
 pub(crate) use assert_same_sign;
 #[allow(unused_imports)]
-pub(crate) use verbose;
-#[allow(unused_imports)]
 pub(crate) use fork_test;
+#[allow(unused_imports)]
+pub(crate) use verbose;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

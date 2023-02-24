@@ -1,23 +1,23 @@
 use std::ffi::CString;
 
 macro_rules! test {
-	($name: ident, $str: expr, $to_find: expr) => {
-		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 1000)]
+    ($name: ident, $str: expr, $to_find: expr) => {
+        crate::fork_test! {
+            #![rusty_fork(timeout_ms = 1000)]
 
-			#[test]
-			fn $name() {
-				let str = CString::new("Test basique").unwrap();
-				let ret_user = unsafe {
-					crate::ft_strrchr(str.as_ptr(), $to_find as i32)
-				};
-				let ret_libc = unsafe {
-					libc::strrchr(str.as_ptr(), $to_find as i32)
-				};
-				assert_eq!(ret_user, ret_libc);
-			}
-		}
-	};
+            #[test]
+            fn $name() {
+                let str = CString::new("Test basique").unwrap();
+                let ret_user = unsafe {
+                    crate::ft_strrchr(str.as_ptr(), $to_find as i32)
+                };
+                let ret_libc = unsafe {
+                    libc::strrchr(str.as_ptr(), $to_find as i32)
+                };
+                assert_eq!(ret_user, ret_libc);
+            }
+        }
+    };
 }
 
 test!(basic, "Test basique", b'e');

@@ -1,37 +1,35 @@
-use std::ffi::CString;
 use crate::assert_same_sign;
+use std::ffi::CString;
 
 macro_rules! test {
-	(full, $name: ident, $str1: expr, $str2: expr) => {
-		test!($name, $str1, $str2, libc::size_t::MAX);
-	};
-	($name: ident, $str: expr) => {
-		test!($name, $str, $str, $str.len());
-	};
-	($name: ident, $str1: expr, $str2: expr) => {
-		test!($name, $str1, $str2, $str1.len());
-	};
-	($name: ident, $str1: expr, $str2: expr, $len: expr) => {
-		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 100)]
+    (full, $name: ident, $str1: expr, $str2: expr) => {
+        test!($name, $str1, $str2, libc::size_t::MAX);
+    };
+    ($name: ident, $str: expr) => {
+        test!($name, $str, $str, $str.len());
+    };
+    ($name: ident, $str1: expr, $str2: expr) => {
+        test!($name, $str1, $str2, $str1.len());
+    };
+    ($name: ident, $str1: expr, $str2: expr, $len: expr) => {
+        crate::fork_test! {
+            #![rusty_fork(timeout_ms = 100)]
 
-			#[test]
-			fn $name() {
-				let s1 = CString::new($str1).expect("Cannot create first string");
-				let s2 = CString::new($str2).expect("Cannot create second string");
-				let ret_val = unsafe {
-					crate::ft_strncmp(s1.as_ptr(), s2.as_ptr(), $len)
-				};
-				let libc_val = unsafe {
-					libc::strncmp(s1.as_ptr(), s2.as_ptr(), $len)
-				};
-				assert_same_sign!(ret_val, libc_val);
-			}
-		}
-	};
+            #[test]
+            fn $name() {
+                let s1 = CString::new($str1).expect("Cannot create first string");
+                let s2 = CString::new($str2).expect("Cannot create second string");
+                let ret_val = unsafe {
+                    crate::ft_strncmp(s1.as_ptr(), s2.as_ptr(), $len)
+                };
+                let libc_val = unsafe {
+                    libc::strncmp(s1.as_ptr(), s2.as_ptr(), $len)
+                };
+                assert_same_sign!(ret_val, libc_val);
+            }
+        }
+    };
 }
-
-
 
 // Matching
 test!(basic, "SuperTest");

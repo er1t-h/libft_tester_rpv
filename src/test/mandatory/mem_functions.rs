@@ -1,5 +1,6 @@
 mod bzero;
 mod calloc;
-mod memset;
-mod memcmp;
 mod memchr;
+mod memcmp;
+mod memcpy;
+mod memset;

@@ -5,7 +5,6 @@
 //! justifiable as crashing
 //!
 
-
 macro_rules! test {
 	($name: ident, $buffer_size: expr, $char_to_write: expr, $number_to_write: expr) => {
 		crate::fork_test! {

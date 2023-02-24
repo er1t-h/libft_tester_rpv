@@ -3,16 +3,16 @@ use std::ffi::CString;
 // Rust's libc wrapper don't have BSD/string.h to include strlcat
 
 const fn size_of_buffer<const SIZE: usize>(table: [&str; SIZE]) -> usize {
-	let mut total_size = 0_usize;
-	let mut index = 0;
-	loop {
-		if index == SIZE {
-			break total_size;
-		} else {
-			total_size += table[index].len();
-			index += 1;
-		}
-	}
+    let mut total_size = 0_usize;
+    let mut index = 0;
+    loop {
+        if index == SIZE {
+            break total_size;
+        } else {
+            total_size += table[index].len();
+            index += 1;
+        }
+    }
 }
 
 macro_rules! test {

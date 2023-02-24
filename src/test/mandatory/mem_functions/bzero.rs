@@ -9,7 +9,6 @@
 //! justifiable as crashing
 //!
 
-
 macro_rules! test {
 	($name: ident, $buffer_size: expr, $to_write: expr) => {
 		crate::fork_test! {

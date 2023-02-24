@@ -1,7 +1,7 @@
 use crate::fork_test;
 use crate::verbose;
 
-fork_test!{
+fork_test! {
     #[test]
     fn test() {
         for i in 0..=255 {

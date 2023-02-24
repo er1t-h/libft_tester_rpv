@@ -1,5 +1,5 @@
-use std::{fs::File, os::unix::prelude::AsRawFd};
 use std::ffi::CString;
+use std::{fs::File, os::unix::prelude::AsRawFd};
 
 macro_rules! test {
 	($name: ident, $to_write: expr) => {
@@ -19,15 +19,18 @@ macro_rules! test {
 	};
 }
 test!(basic, "Super !");
-test!(longer, "En vrai faire un call a write pour chaque caractere c'est pas ouf");
+test!(
+    longer,
+    "En vrai faire un call a write pour chaque caractere c'est pas ouf"
+);
 test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
 
 crate::fork_test! {
-	#[test]
-	fn null() {
-		let filename = format!(".tests_putendl/{}.txt", line!());
-		let file = File::create(&filename).unwrap();
-		let fd = file.as_raw_fd();
-		unsafe { crate::ft_putendl_fd(std::ptr::null(), fd) }
-	}
+    #[test]
+    fn null() {
+        let filename = format!(".tests_putendl/{}.txt", line!());
+        let file = File::create(&filename).unwrap();
+        let fd = file.as_raw_fd();
+        unsafe { crate::ft_putendl_fd(std::ptr::null(), fd) }
+    }
 }

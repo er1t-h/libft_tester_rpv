@@ -29,5 +29,10 @@ test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer 
 test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "麻雀");
 test!(match_trap, "bonbonbons", "bonbons");
 test!(no_match, "Un test intéressant", "teste");
-test!(no_match_n_max, "Un test intéressant", "teste", libc::size_t::MAX);
+test!(
+    no_match_n_max,
+    "Un test intéressant",
+    "teste",
+    libc::size_t::MAX
+);
 test!(stop_in_match, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "麻雀", 70);

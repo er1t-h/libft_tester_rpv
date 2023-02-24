@@ -31,49 +31,49 @@ test!(no_copy, "SuperTest", 1, 0);
 test!(bigger_buffer, "SuperTest", 0, libc::size_t::MAX);
 
 crate::fork_test! {
-	#[test]
-	fn start_after_end_of_string() {
-		let base_str = CString::new("SuperTest").unwrap();
-		let result = unsafe {
-			crate::ft_substr(base_str.as_ptr(), 1000, 6)
-		};
-		if result.is_null() {
-			crate::verbose!("User choose to handle passing a start higher than len \
-							by returning NULL.");
-			return;
-		}
-		if unsafe { *result } == 0 {
-			unsafe {libc::free(result as *mut libc::c_void)};
-			crate::verbose!("User choose to handle passing a start higher than len \
-							by returning an empty string.");
-			return;
-		}
+    #[test]
+    fn start_after_end_of_string() {
+        let base_str = CString::new("SuperTest").unwrap();
+        let result = unsafe {
+            crate::ft_substr(base_str.as_ptr(), 1000, 6)
+        };
+        if result.is_null() {
+            crate::verbose!("User choose to handle passing a start higher than len \
+                            by returning NULL.");
+            return;
+        }
+        if unsafe { *result } == 0 {
+            unsafe {libc::free(result as *mut libc::c_void)};
+            crate::verbose!("User choose to handle passing a start higher than len \
+                            by returning an empty string.");
+            return;
+        }
 
-		// If you go through here, you handled passing NULL in a way I didn't anticipate.
-		// If you can explain it clearly, you may ignore this failing test.
-		// However, if you let your code crash with this test
-		// because you didn't handle having NULL as an argument, you should get
-		// a Crash flag.
-		panic!("Handled passing start higher than len to substr in a strange way");
-	}
+        // If you go through here, you handled passing NULL in a way I didn't anticipate.
+        // If you can explain it clearly, you may ignore this failing test.
+        // However, if you let your code crash with this test
+        // because you didn't handle having NULL as an argument, you should get
+        // a Crash flag.
+        panic!("Handled passing start higher than len to substr in a strange way");
+    }
 
 
-	#[test]
-	fn null() {
-		let result = unsafe {
-			crate::ft_substr(std::ptr::null(), 1000, 6)
-		};
-		if result.is_null() {
-			crate::verbose!("User choose to handle passing a start higher than len \
-							by returning NULL.");
-			return;
-		}
+    #[test]
+    fn null() {
+        let result = unsafe {
+            crate::ft_substr(std::ptr::null(), 1000, 6)
+        };
+        if result.is_null() {
+            crate::verbose!("User choose to handle passing a start higher than len \
+                            by returning NULL.");
+            return;
+        }
 
-		// If you go through here, you handled passing NULL in a way I didn't anticipate.
-		// If you can explain it clearly, you may ignore this failing test.
-		// However, if you let your code crash with this test
-		// because you didn't handle having NULL as an argument, you should get
-		// a Crash flag.
-		panic!("Handled passing NULL to substr in a strange way");
-	}
+        // If you go through here, you handled passing NULL in a way I didn't anticipate.
+        // If you can explain it clearly, you may ignore this failing test.
+        // However, if you let your code crash with this test
+        // because you didn't handle having NULL as an argument, you should get
+        // a Crash flag.
+        panic!("Handled passing NULL to substr in a strange way");
+    }
 }
