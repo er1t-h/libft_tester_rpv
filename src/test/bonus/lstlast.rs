@@ -29,8 +29,10 @@ test!(just_one, 1);
 test!(basic, 3);
 test!(many_items, 100);
 
-#[test]
-fn null() {
-	let last = unsafe { crate::ft_lstlast(std::ptr::null_mut() as *mut crate::s_list) };
-	assert!(last.is_null());
+crate::fork_test!{
+	#[test]
+	fn null() {
+		let last = unsafe { crate::ft_lstlast(std::ptr::null_mut() as *mut crate::s_list) };
+		assert!(last.is_null());
+	}
 }

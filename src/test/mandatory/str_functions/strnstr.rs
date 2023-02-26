@@ -3,8 +3,6 @@ use std::ffi::CString;
 macro_rules! test {
 	($name: ident, $haystack: expr, $needle: expr, $size: expr) => {
 		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 100)]
-
 			#[test]
 			fn $name() {
 				let haystack = CString::new($haystack).unwrap();

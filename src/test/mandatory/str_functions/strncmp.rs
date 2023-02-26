@@ -13,8 +13,6 @@ macro_rules! test {
     };
     ($name: ident, $str1: expr, $str2: expr, $len: expr) => {
         crate::fork_test! {
-            #![rusty_fork(timeout_ms = 100)]
-
             #[test]
             fn $name() {
                 let s1 = CString::new($str1).expect("Cannot create first string");
