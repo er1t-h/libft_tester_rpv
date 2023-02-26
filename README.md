@@ -2,6 +2,13 @@
 
 A quick and efficient tester for your libft using Cargo.
 
+## Expected file structure
+```
+libft
+├── libft.a
+└── libft_rpv
+```
+
 ## Usage:
 
 To launch all mandatory tests:

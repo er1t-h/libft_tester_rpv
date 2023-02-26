@@ -9,8 +9,8 @@ fn main() {
     println!("cargo:rerun-if-changed=utils_c_functions/list_utils_functions.c");
     println!("cargo:rerun-if-changed=utils_c_functions/striteri_functions.c");
     println!("cargo:rerun-if-changed=utils_c_functions/strmapi_functions.c");
-    println!("cargo:rerun-if-changed=libft.a");
-    println!("cargo:rustc-link-search=.");
+    println!("cargo:rerun-if-changed=../libft.a");
+    println!("cargo:rustc-link-search=../");
     println!("cargo:rustc-link-lib=ft");
 
     let bindings = bindgen::Builder::default()
