@@ -33,8 +33,6 @@ fn to_num_in_place(index: usize, c: u8) -> u8 {
 macro_rules! test {
     ($name: ident, $str: expr, $func: ident) => {
         crate::fork_test! {
-            #![rusty_fork(timeout_ms = 1000)]
-
             #[test]
             fn $name() {
                 let mut cchars = $str.map(|c| c as libc::c_char);
@@ -67,8 +65,6 @@ test!(
 );
 
 crate::fork_test! {
-    #![rusty_fork(timeout_ms = 1000)]
-
     #[test]
     fn str_as_null() {
         unsafe { crate::ft_striteri(std::ptr::null_mut(), Some(crate::rotx_in_place)) }

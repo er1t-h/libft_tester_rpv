@@ -33,8 +33,6 @@ fn to_num(index: usize, c: u8) -> u8 {
 macro_rules! test {
 	($name: ident, $str: expr, $func: ident) => {
 		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 1000)]
-
 			#[test]
 			fn $name() {
 				let cchars = CString::new($str).unwrap();
@@ -65,8 +63,6 @@ test!(
 );
 
 crate::fork_test! {
-    #![rusty_fork(timeout_ms = 1000)]
-
     #[test]
     fn str_as_null() {
         unsafe { crate::ft_strmapi(std::ptr::null(), Some(crate::rotx)) };

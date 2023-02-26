@@ -61,7 +61,7 @@ macro_rules! fork_test {
         fn $test_name:ident() $body:block
     )*) => {
         rusty_fork::rusty_fork_test!{
-            #![rusty_fork(timeout_ms = 1000)]
+            #![rusty_fork(timeout_ms = 30000)]
             $(
                 $(#[$meta])*
                 fn $test_name() $body

@@ -57,6 +57,7 @@ crate::fork_test! {
             return;
         }
         if unsafe { *user_ret }.is_null() {
+			unsafe { libc::free(user_ret.cast()) };
             verbose!("User chose to allocate an empty array when NULL is given to split");
             return;
         }

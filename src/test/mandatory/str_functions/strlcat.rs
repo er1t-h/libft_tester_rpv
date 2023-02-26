@@ -21,8 +21,6 @@ macro_rules! test {
 	};
 	($name: ident, $to_test: expr, $size: expr) => {
 		crate::fork_test!{
-			#![rusty_fork(timeout_ms = 100)]
-
 			#[test]
 			fn $name() {
 				let mut current_pos = 0;

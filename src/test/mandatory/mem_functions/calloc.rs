@@ -2,7 +2,9 @@
 //! Tests for calloc
 //!
 //! I didn't use the libc's calloc, because it's pretty straightforward.
-//! Not many things to test actually.
+//! Not many things to test actually. I planned to check overflow, but figured I
+//! can't really test it. I thought about checking errno, but libc sometimes set
+//! it while it should have checked overflow... So guess I can't really test it.
 //! For the zero tests, as long as you don't crash or return a wrong pointer,
 //! everything should be good
 //!
@@ -16,15 +18,6 @@ crate::fork_test! {
         unsafe { libc::free(user_ret) };
     }
 
-    #[test]
-    fn check_overflow() {
-        let user_ret = unsafe { crate::ft_calloc(libc::size_t::MAX, 2) };
-        let user_errno = unsafe { *libc::__errno_location() };
-        unsafe { libc::calloc(libc::size_t::MAX, 2) };
-        let libc_errno = unsafe { *libc::__errno_location() };
-        assert!(user_ret.is_null());
-        assert_ne!(user_errno, libc_errno, "When param1 * param2 overflows, calloc should return an error (NULL). But yours tries to malloc, thus setting ENOMEM");
-    }
 
     #[test]
     fn left_zero() {

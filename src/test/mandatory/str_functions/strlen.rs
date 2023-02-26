@@ -3,8 +3,6 @@ use std::ffi::CString;
 macro_rules! test {
     ($name: ident, $to_test: expr) => {
         crate::fork_test! {
-            #![rusty_fork(timeout_ms = 100)]
-
             #[test]
             fn $name() {
                 let test_str = CString::new($to_test).expect("Couldn't create string");

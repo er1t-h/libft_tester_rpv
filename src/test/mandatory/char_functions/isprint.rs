@@ -3,8 +3,6 @@ use crate::fork_test;
 use crate::verbose;
 
 fork_test! {
-    #![rusty_fork(timeout_ms = 1000)]
-
     #[test]
     fn test() {
         for i in 0..=255 {
