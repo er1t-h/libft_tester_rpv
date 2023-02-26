@@ -9,3 +9,5 @@ char	rotone(unsigned int i, char c);
 char	to_num(unsigned int i, char c);
 
 void	nofree(void *data);
+void	all_plus_one(void *elt);
+void	*times_two(void *elt);

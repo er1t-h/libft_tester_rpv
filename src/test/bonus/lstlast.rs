@@ -13,11 +13,11 @@ macro_rules! test {
 						))
 					}
 				}
-				for i in 0_usize..$nb {
+				let last = unsafe { crate::ft_lstlast(list) };
+				assert_eq!(unsafe {*last}.content as usize, $nb - 1);
+				for _i in 0_usize..$nb {
 					let tmp = list;
 					list = (unsafe { *list }).next;
-					let content = unsafe { (*tmp).content } as usize;
-					assert_eq!(content, i, "Element mismatch. Either an addfront failed, or the order got mixed up.");
 					unsafe { libc::free(tmp.cast()) };
 				}
 			}
@@ -28,3 +28,9 @@ macro_rules! test {
 test!(just_one, 1);
 test!(basic, 3);
 test!(many_items, 100);
+
+#[test]
+fn null() {
+	let last = unsafe { crate::ft_lstlast(std::ptr::null_mut() as *mut crate::s_list) };
+	assert!(last.is_null());
+}

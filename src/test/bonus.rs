@@ -4,3 +4,6 @@ mod lstclear;
 mod lstdelone;
 mod lstnew;
 mod lstsize;
+mod lstlast;
+mod lstiter;
+mod lstmap;
