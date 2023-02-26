@@ -16,9 +16,9 @@ macro_rules! test {
                 let size = unsafe { crate::ft_lstsize(list) };
                 assert_eq!(size, $nb);
                 for _i in 0_usize..$nb {
-                    let mut tmp = list;
+                    let tmp = list;
                     list = (unsafe { *list }).next;
-                    unsafe { crate::ft_lstdelone(&mut tmp, Some(crate::nofree)) };
+                    unsafe { crate::ft_lstdelone(tmp, Some(crate::nofree)) };
                 }
             }
         }
@@ -42,9 +42,9 @@ crate::fork_test!{
             }
         }
         for _i in 0_usize..20 {
-            let mut tmp = list;
+            let tmp = list;
             list = (unsafe { *list }).next;
-            unsafe { crate::ft_lstdelone(&mut tmp, None) };
+            unsafe { crate::ft_lstdelone(tmp, None) };
         }
     }
 }
