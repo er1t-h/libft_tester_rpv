@@ -1,4 +1,4 @@
-use std::{env, path::PathBuf};
+use std::{env, path::{PathBuf, Path}};
 
 extern crate bindgen;
 
@@ -12,6 +12,10 @@ fn main() {
     println!("cargo:rerun-if-changed=../libft.a");
     println!("cargo:rustc-link-search=../");
     println!("cargo:rustc-link-lib=ft");
+
+    if !Path::new("../libft.a").exists() {
+        panic!("'../libft.a' does not exist")
+    }
 
     let bindings = bindgen::Builder::default()
         .header("bindgen/wrapper.h")
