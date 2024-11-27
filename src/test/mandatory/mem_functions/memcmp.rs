@@ -1,48 +1,39 @@
-use crate::assert_same_sign;
+use crate::{
+    assert_same_sign, libft,
+    test::{test, DisplayableSlice},
+    RANDOM_REPEAT_NUMBER,
+};
+use fake::Fake;
 use libc::c_void;
 
-macro_rules! test {
-	($name: ident, $size: expr, $buff1: expr, $buff2: expr) => {
-		crate::fork_test! {
-			#[test]
-			fn $name() {
-				let first_buffer = $buff1;
-				let second_buffer = $buff2;
-				let user_ret = unsafe {
-					crate::ft_memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
-				};
-				let libc_ret = unsafe {
-					libc::memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, 4 * $size)
-				};
-				assert_same_sign!(libc_ret, user_ret);
-			}
-		}
-	};
-	($name: ident, $size: expr, $buff1: expr) => {
-		test!($name, $size, $buff1, $buff1);
-	};
-}
+test!(
+    ft_memcmp(first_buffer: DisplayableSlice<u8>, second_buffer: DisplayableSlice<u8>, size: usize) {
+        let first_buffer = first_buffer.0;
+        let second_buffer = second_buffer.0;
+        let user_ret = unsafe {
+            libft::ft_memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, size)
+        };
+        let libc_ret = unsafe {
+            libc::memcmp(first_buffer.as_ptr() as *const c_void, second_buffer.as_ptr() as *const c_void, size)
+        };
+        assert_same_sign!(user_ret, libc_ret, "sign mismatch");
+    }
+);
 
-test!(
-    basic,
-    10,
-    [11037, 564, 12, 4674, 45748, 0, 112, 15, 564, 546]
-);
-test!(
-    mismatch_after_len,
-    2,
-    [11037, 564, 12, 4674, 45748, 0, 112, 15, 564, 546],
-    [11037, 564, 145, 4674, 45748, 0, 112, 15, 564, 546]
-);
-test!(
-    mismatch_in_len,
-    10,
-    [11037, 564, 12, 4674, 45748, 0, 112, 15, 564, 546],
-    [11037, 564, 145, 4674, 45748, 0, 112, 15, 564, 546]
-);
-test!(
-    compare_zero,
-    0,
-    [2147483647, 564, 12, 4674, 45748, 0, 112, 15, 564, 546],
-    [0, 564, 145, 4674, 45748, 0, 112, 15, 564, 546]
-);
+crate::fork_test! {
+    #[test]
+    fn random() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER * 9 / 10 {
+            let size = (1..5000).fake();
+            let first_buffer = fake::vec![u8; size];
+            let second_buffer = fake::vec![u8; size];
+            test(DisplayableSlice(&first_buffer), DisplayableSlice(&second_buffer), (0..size).fake());
+        }
+
+        for _ in 0..*RANDOM_REPEAT_NUMBER / 10 {
+            let size = (1..5000).fake();
+            let first_buffer = fake::vec![u8; size];
+            test(DisplayableSlice(&first_buffer), DisplayableSlice(&first_buffer), (0..size).fake());
+        }
+    }
+}

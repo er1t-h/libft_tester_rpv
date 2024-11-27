@@ -1,36 +1,59 @@
+use fake::Fake;
+use pretty_assertions::assert_str_eq;
+
+use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
 use std::ffi::CString;
 
-macro_rules! test {
-	($name: ident, $haystack: expr, $needle: expr, $size: expr) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				let haystack = CString::new($haystack).unwrap();
-				let needle = CString::new($needle).unwrap();
-				let user_ret = unsafe {
-					crate::ft_strnstr(haystack.as_ptr(), needle.as_ptr(), $size)
-				};
-				match $haystack[..if $size > $haystack.len() {$haystack.len()} else {$size}].find($needle) {
-					None => assert!(user_ret.is_null(), "There should have been no match."),
-					Some(x) => assert_eq!(x, user_ret as usize - haystack.as_ptr() as usize),
-				}
-			}
-		}
-	};
-	($name: ident, $haystack: expr, $needle: expr) => {
-		test!($name, $haystack, $needle, $haystack.len());
-	};
+fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+    if needle.is_empty() {
+        // if needle is empty string, then haystack is returned
+        Some(0)
+    } else {
+        haystack.windows(needle.len()).position(|hay| hay == needle)
+    }
 }
 
-test!(basic, "Un test intéressant", "test");
-test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "lobortis");
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "麻雀");
-test!(match_trap, "bonbonbons", "bonbons");
-test!(no_match, "Un test intéressant", "teste");
 test!(
-    no_match_n_max,
-    "Un test intéressant",
-    "teste",
-    libc::size_t::MAX
+    #![test "match but size 0" => "match","m",0]
+    #![test "empty needle" => "match","",5]
+    #![test "no match n max" => "Un test intéressant","teste",libc::size_t::MAX]
+    #![test "match trap" => "bonbonbons", "bonbons", libc::size_t::MAX]
+    #![test "stopping during match" => "Super test", "test", 8]
+    ft_strnstr(haystack: &str, needle: &str, size: usize) {
+        let c_haystack = CString::new(haystack).expect("DPS: couldn't create string");
+        let c_needle = CString::new(needle).expect("DPS: couldn't create string");
+
+        let user_ret = unsafe { libft::ft_strnstr(c_haystack.as_ptr(), c_needle.as_ptr(), size) };
+        match (find(&haystack.as_bytes()[..size.min(haystack.len())], needle.as_bytes()), user_ret) {
+            (None, None) => (),
+            (None, Some(_)) => panic!("needle isn't in the first characters of haystack, yet you found it"),
+            (Some(_), None) => panic!("needle was in the first characters of haystack, but you didn't find it"),
+            (Some(expected), Some(user_ret)) => {
+                let expected_string = String::from_utf8_lossy(&haystack.as_bytes()[expected..]);
+                let user_string = String::from_utf8_lossy(user_ret.to_bytes());
+
+                assert_str_eq!(user_string, expected_string, "wrong function output");
+            }
+        }
+    }
 );
-test!(stop_in_match, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "麻雀", 70);
+
+crate::fork_test! {
+    #[test]
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let s = generate::alnum_string();
+
+            test(&s, &(2..8).fake::<String>(), (0..s.len()).fake());
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let s: String = generate::utf8_string();
+
+            test(&s, &(1..4).fake::<String>(), (0..s.len()).fake());
+        }
+    }
+}

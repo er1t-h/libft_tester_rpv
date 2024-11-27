@@ -1,26 +1,26 @@
-use std::{fs::File, os::unix::prelude::AsRawFd};
+use crate::{fork_test, libft, test::test};
+use std::{fs::File, io::Read, os::fd::FromRawFd};
 
-macro_rules! test {
-    ($name: ident, $to_write: expr) => {
-        crate::fork_test! {
-            #[test]
-            fn $name() {
-                let filename = format!(".tests_putchar/{}.txt", line!());
-                let file = File::create(&filename).unwrap();
-                let fd = file.as_raw_fd();
-                for c in $to_write.as_bytes() {
-                    unsafe { crate::ft_putchar_fd(*c as i8, fd) }
-                }
-                let content = std::fs::read_to_string(filename).unwrap();
-                assert_eq!(content, $to_write);
-            }
-        }
-    };
-}
-
-test!(basic, "Super !");
 test!(
-    longer,
-    "En vrai faire un call a write pour chaque caractere c'est pas ouf"
+    ft_putchar_fd(c: char) {
+        unsafe {
+            let [read, write] = super::pipe();
+            let _write = File::from_raw_fd(write);
+            let mut read = File::from_raw_fd(read);
+            libft::ft_putchar_fd(c as i8, write);
+            std::mem::drop(_write);
+            let mut buffer = Vec::new();
+            read.read_to_end(&mut buffer).expect("DPS: couldn't read");
+            assert_eq!(buffer, &[c as u8], "didn't print the right thing");
+        }
+    }
 );
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
+
+fork_test! {
+    #[test]
+    fn all_chars() {
+        for c in 0..=255_u8 {
+            test(c as char)
+        }
+    }
+}

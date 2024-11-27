@@ -4,26 +4,30 @@
 //! Not testing NULL because it's undefined, so not crashing would be as
 //! justifiable as crashing
 //!
+use crate::{
+    libft,
+    test::{test, DisplayableSlice},
+};
+use fake::{Fake, Faker};
 
-macro_rules! test {
-	($name: ident, $buffer_size: expr, $char_to_write: expr, $number_to_write: expr) => {
-		crate::fork_test! {
-			#[test]
-			fn $name() {
-				let mut buffer_user = [1_u8; $buffer_size];
-				let mut buffer_libc = [1_u8; $buffer_size];
+test!(
+    ft_memset(buffer_user: DisplayableSlice<u8>, character: char, to_replace: usize) {
+        let mut buffer_user = buffer_user.0.to_vec();
+        let mut buffer_libc = buffer_user.to_vec();
 
-				unsafe { crate::ft_memset(buffer_user.as_mut_ptr() as *mut libc::c_void, $char_to_write as i32, $number_to_write) };
-				unsafe { libc::memset(buffer_libc.as_mut_ptr() as *mut libc::c_void, $char_to_write as i32, $number_to_write) };
-				assert_eq!(buffer_libc, buffer_user);
-			}
-		}
-	};
-	($name: ident, $buffer_size: expr, $char_to_write: expr) => {
-		test!($name, $buffer_size, $char_to_write, $buffer_size);
-	};
+        unsafe { libft::ft_memset(buffer_user.as_mut_ptr().cast(), character as i32, to_replace); };
+        unsafe { libc::memset(buffer_libc.as_mut_ptr().cast(), character as i32, to_replace); };
+
+        assert_eq!(buffer_user, buffer_libc, "your buffer and the libc buffer don't match");
+    }
+);
+
+crate::fork_test! {
+    #[test]
+    fn random() {
+        let buffer = fake::vec![u8; 1..10000];
+        let buffer_len = buffer.len();
+
+        test(DisplayableSlice(buffer.as_slice()), Faker.fake::<u8>() as char, (0..buffer_len).fake());
+    }
 }
-
-test!(basic, 1000, 'w');
-test!(replace_half, 1000, '5', 500);
-test!(no_replace, 1000, 'v', 0);

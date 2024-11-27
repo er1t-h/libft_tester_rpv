@@ -1,50 +1,54 @@
-use crate::assert_same_sign;
+use crate::{assert_same_sign, generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use fake::Fake;
 use std::ffi::CString;
 
-macro_rules! test {
-    (full, $name: ident, $str1: expr, $str2: expr) => {
-        test!($name, $str1, $str2, libc::size_t::MAX);
-    };
-    ($name: ident, $str: expr) => {
-        test!($name, $str, $str, $str.len());
-    };
-    ($name: ident, $str1: expr, $str2: expr) => {
-        test!($name, $str1, $str2, $str1.len());
-    };
-    ($name: ident, $str1: expr, $str2: expr, $len: expr) => {
-        crate::fork_test! {
-            #[test]
-            fn $name() {
-                let s1 = CString::new($str1).expect("Cannot create first string");
-                let s2 = CString::new($str2).expect("Cannot create second string");
-                let ret_val = unsafe {
-                    crate::ft_strncmp(s1.as_ptr(), s2.as_ptr(), $len)
-                };
-                let libc_val = unsafe {
-                    libc::strncmp(s1.as_ptr(), s2.as_ptr(), $len)
-                };
-                assert_same_sign!(ret_val, libc_val);
-            }
+test!(
+    #![test "compare of size 0" => "SuperTest!", "Bof pas trop", 0]
+    ft_strncmp(s1: &str, s2: &str, len: usize) {
+        let c_s1 = CString::new(s1).expect("Cannot create first string");
+        let c_s2 = CString::new(s2).expect("Cannot create second string");
+        let ret_val = unsafe {
+            libft::ft_strncmp(c_s1.as_ptr(), c_s2.as_ptr(), len)
+        };
+        let libc_val = unsafe {
+            libc::strncmp(c_s1.as_ptr(), c_s2.as_ptr(), len)
+        };
+        assert_same_sign!(ret_val, libc_val, "wrong output\nlibc returned {libc_val}\nyou returned {ret_val}");
+    }
+);
+
+crate::fork_test! {
+    #[test]
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER * 9 / 10 {
+            let s1 = generate::alnum_string();
+            let s2 = generate::alnum_string();
+
+            test(&s1, &s2, (0..8000).fake());
         }
-    };
+        // since it's complicated for two random strings to match, these
+        // tests will only test the same string twice
+        for _ in 0..*RANDOM_REPEAT_NUMBER / 10 {
+            let s = generate::alnum_string();
+
+            test(&s, &s, (0..8000).fake());
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER * 9 / 10 {
+            let s1 = generate::utf8_string();
+            let s2 = generate::utf8_string();
+
+            test(&s1, &s2, (0..s1.len()).fake());
+        }
+        // since it's even more complicated for two random utf strings to match,
+        // these tests will only test the same string twice
+        for _ in 0..*RANDOM_REPEAT_NUMBER / 10 {
+            let s = generate::utf8_string();
+
+            test(&s, &s, (0..8000).fake());
+        }
+    }
 }
-
-// Matching
-test!(basic, "SuperTest");
-test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
-test!(same_begin, "SuperTest!", "Soit, je comprends", 1);
-test!(no_compare, "SuperTest!", "Bof pas trop", 0);
-
-// Mismatch
-test!(full, basic_positive, "SuperTeste", "SuperTest");
-test!(full, basic_negative, "SuperTest", "SuperTeste");
-test!(full, longer_positive, "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(full, longer_negative, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorme ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(full, utf8_positive, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");
-test!(full, utf8_negative, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。");
-
-// Mismatch after len
-test!(basic_after, "SuperTeste", "SuperTest", 5);
-test!(longer_after, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolores justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.", 100);
-test!(utf8_, "Salut! C'est un test de qualité contenant de supers UTF-8; 🀓麻雀🀄がしたい。このテストは本当に面白いなぁ。", "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。", 57);

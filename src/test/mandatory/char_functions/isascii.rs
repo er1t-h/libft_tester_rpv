@@ -1,19 +1,23 @@
-use crate::fork_test;
-use crate::verbose;
+use libc::c_int;
+
+use crate::{assert_nzero, fork_test, libft, test::test};
+
+test!(
+    ft_isascii(c: char) {
+        let user_ret = unsafe {
+            libft::ft_isascii(c as c_int)
+        };
+        let libc_ret = c_int::from(c.is_ascii());
+
+        assert_nzero!(user_ret, libc_ret);
+    }
+);
 
 fork_test! {
     #[test]
-    fn test() {
-        for i in 0..=255 {
-            let user_ret = unsafe {
-                crate::ft_isascii(i)
-            };
-            // The libc binding don't provide isascii, so I'm using rust's std
-            // function. It works exactly the same and won't be a problem.
-            let libc_ret = (i as u8 as char).is_ascii();
-
-            verbose!("Current char: {}", i);
-            assert_eq!(user_ret != 0, libc_ret);
+    fn all_chars() {
+        for c in 0..=255_u8 {
+            test(c as char)
         }
     }
 }

@@ -1,20 +1,25 @@
-use crate::assert_nzero;
-use crate::fork_test;
-use crate::verbose;
+use libc::c_int;
+
+use crate::{assert_nzero, fork_test, libft, test::test};
+
+test!(
+    ft_isprint(c: char) {
+        let user_ret = unsafe {
+            libft::ft_isprint(c as c_int)
+        };
+        let libc_ret = unsafe {
+            libc::isprint(c as c_int)
+        };
+
+        assert_nzero!(user_ret, libc_ret);
+    }
+);
 
 fork_test! {
     #[test]
-    fn test() {
-        for i in 0..=255 {
-            let user_ret = unsafe {
-                crate::ft_isprint(i)
-            };
-            let libc_ret = unsafe {
-                libc::isprint(i)
-            };
-
-            verbose!("Current char: {}", i);
-            assert_nzero!(user_ret, libc_ret);
+    fn all_chars() {
+        for c in 0..=255_u8 {
+            test(c as char)
         }
     }
 }

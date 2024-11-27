@@ -1,22 +1,39 @@
-use std::{ffi::CString, slice::from_raw_parts};
+use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use std::ffi::CString;
 
-macro_rules! test {
-	($name: ident, $str: expr) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				let str = CString::new($str).unwrap();
-				let user_ret = unsafe {
-					crate::ft_strdup(str.as_ptr())
-				};
-				let content = unsafe { from_raw_parts(user_ret as *mut u8, str.as_bytes_with_nul().len()) };
-				assert_eq!(str.as_bytes_with_nul(), content);
-				unsafe {libc::free(user_ret as *mut libc::c_void)};
-			}
-		}
-	};
+test!(
+    #![test "empty string" => ""]
+    ft_strdup(s: &str) {
+        let str = CString::new(s).expect("DPS: couldn't create string");
+        let user_string = unsafe {
+            libft::ft_strdup(str.as_ptr())
+        };
+        let Some(user_string) = user_string else {
+            panic!("returned NULL");
+        };
+        assert_eq!(s, user_string.as_utf8_lossy(), "wrong function output");
+    }
+);
+
+crate::fork_test! {
+    #[test]
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            // Generates between 2 and 500 words that will be joined by random string
+            // with len between 0 and 10
+            let s = generate::alnum_string();
+
+            test(&s);
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            // Generates between 10 and 2000 utf8 characters
+            let s: String = generate::utf8_string();
+
+            test(&s);
+        }
+    }
 }
-
-test!(basic, "SuperTest");
-test!(longer, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ornare et ipsum et molestie. Sed fermentum metus ut sem imperdiet pretium. Etiam non dolor justo. Nullam dignissim malesuada dui, a malesuada ex facilisis ac. Nullam sit amet odio et neque vestibulum eleifend. Etiam malesuada ultrices orci. Sed quam ligula, pharetra at mattis vitae, mollis et urna. Proin a lobortis elit. Quisque gravida nec lorem ut auctor. In vitae tincidunt arcu. Cras ultricies augue augue, in mattis massa elementum vel.");
-test!(utf8, "Salut! C'est un test de qualité contenant de supers UTF-8. 🀄麻雀🀄がしたい。このテストは本当に面白いなぁ。");

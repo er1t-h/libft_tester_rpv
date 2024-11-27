@@ -58,3 +58,12 @@
    fun:*std*rt*lang_start*
    fun:main
 }
+{
+   libloading leaks
+
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*alloc
+   ...
+   fun:dlopen*
+}

@@ -1,85 +1,93 @@
-use std::cmp::Ordering;
+use libc::{c_char, c_uint};
+use pretty_assertions::assert_str_eq;
 
-fn rotx_in_place(index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        (((c - b'A') as usize + index) % 26) as u8 + b'A'
-    } else if c.is_ascii_lowercase() {
-        (((c - b'a') as usize + index) % 26) as u8 + b'a'
-    } else {
-        c
-    }
-}
+use crate::{
+    generate, libft,
+    test::{test, Unprintable},
+    utils, RANDOM_REPEAT_NUMBER,
+};
+use std::ffi::CString;
 
-fn rotone_in_place(_index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        ((c - b'A' + 1) % 26) + b'A'
-    } else if c.is_ascii_lowercase() {
-        ((c - b'a' + 1) % 26) + b'a'
-    } else {
-        c
-    }
-}
+test!(
+    #![test "empty string with rotone" => String::new().as_mut_str(), Unprintable(Some(utils::rotone_in_place))]
+    #![test "empty string with rotx" => String::new().as_mut_str(), Unprintable(Some(utils::rotx_in_place))]
+    #![test "empty string with to_num" => String::new().as_mut_str(), Unprintable(Some(utils::to_num_in_place))]
+    ft_striteri(s: &str, f: Unprintable<unsafe extern "C" fn(c_uint, *mut c_char)>) {
+        let f = f.unwrap();
+        let mut s = s.to_string();
+        let cchars = CString::new(s.as_str()).expect("DPS: couldn't create string");
 
-fn to_num_in_place(index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        (((c - b'A') as usize + index) % 10) as u8 + b'0'
-    } else if c.is_ascii_lowercase() {
-        (((c - b'a') as usize + index) % 10) as u8 + b'0'
-    } else {
-        c
-    }
-}
-
-macro_rules! test {
-    ($name: ident, $str: expr, $func: ident) => {
-        crate::fork_test! {
-            #[test]
-            fn $name() {
-                let mut cchars = $str.map(|c| c as libc::c_char);
-                unsafe { crate::ft_striteri(cchars.as_mut_ptr(), Some(crate::$func)) }
-                let expected = $str.iter().enumerate().map(|(index, value)| $func(index, *value));
-                let bytes = cchars.map(|x| x as u8);
-                assert_eq!(expected.cmp(bytes), Ordering::Equal);
-            }
+        unsafe {
+            libft::ft_striteri(cchars.as_ptr().cast_mut(), Some(f));
+            s.as_bytes_mut().iter_mut().enumerate().for_each(|(index, value)| f(index as u32, (value as *mut u8).cast()));
         }
-    };
-}
-
-test!(basic_rotone, b"Bonjour\0", rotone_in_place);
-test!(
-    longer_rotone,
-    b"Un super test de qualite n'est-ce pas\0",
-    rotone_in_place
-);
-test!(basic_rotx, b"Bonjour\0", rotx_in_place);
-test!(
-    longer_rotx,
-    b"Un super test de qualite n'est-ce pas\0",
-    rotx_in_place
-);
-test!(basic_to_num, b"Bonjour\0", to_num_in_place);
-test!(
-    longer_to_num,
-    b"Un super test de qualite n'est-ce pas\0",
-    to_num_in_place
+        let user_return = String::from_utf8_lossy(cchars.as_bytes());
+        assert_str_eq!(user_return, s.as_str(), "wrong output");
+    }
 );
 
 crate::fork_test! {
     #[test]
     fn str_as_null() {
-        unsafe { crate::ft_striteri(std::ptr::null_mut(), Some(crate::rotx_in_place)) }
+        unsafe { libft::ft_striteri(std::ptr::null_mut(), Some(utils::rotx_in_place)) }
     }
 
     #[test]
     fn fn_as_null() {
-        let expected = b"Bonjour\0".map(|c| c as libc::c_char);
-        let mut cchars = expected.clone();
-        unsafe { crate::ft_striteri(cchars.as_mut_ptr(), None) }
-        assert_eq!(cchars, expected, "String was changed but function was NULL");
+        let expected = c"Bonjour";
+        let cchars = CString::from(expected);
+        unsafe { libft::ft_striteri(cchars.as_ptr().cast_mut(), None) }
+
+        let expected = String::from_utf8_lossy(expected.to_bytes());
+        let user_return = String::from_utf8_lossy(cchars.as_bytes());
+
+        assert_eq!(user_return, expected, "string was changed but function was NULL");
     }
 
     #[test]
     fn both_null() {
-        unsafe { crate::ft_striteri(std::ptr::null_mut(), None) }
+        unsafe { libft::ft_striteri(std::ptr::null_mut(), None) }
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_with_rotone() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::alnum_string().as_mut_str(), Unprintable(Some(utils::rotone_in_place)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters_with_rotone() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::utf8_string().as_mut_str(), Unprintable(Some(utils::rotone_in_place)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_with_rotx() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::alnum_string().as_mut_str(), Unprintable(Some(utils::rotx_in_place)));
+        }
+    }
+
+        #[test]
+    fn random_test_with_utf8_characters_with_rotx() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::utf8_string().as_mut_str(), Unprintable(Some(utils::rotx_in_place)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_with_to_num() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::alnum_string().as_mut_str(), Unprintable(Some(utils::to_num_in_place)));
+        }
+    }
+
+        #[test]
+    fn random_test_with_utf8_characters_with_to_num() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(generate::utf8_string().as_mut_str(), Unprintable(Some(utils::to_num_in_place)));
+        }
     }
 }

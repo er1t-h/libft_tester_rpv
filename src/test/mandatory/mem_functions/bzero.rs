@@ -8,26 +8,30 @@
 //! Not testing NULL because it's undefined, so not crashing would be as
 //! justifiable as crashing
 //!
+use crate::{
+    libft,
+    test::{test, Unprintable},
+};
+use fake::Fake;
 
-macro_rules! test {
-	($name: ident, $buffer_size: expr, $to_write: expr) => {
-		crate::fork_test! {
-			#[test]
-			fn $name() {
-				let mut buffer_user = [1_u8; $buffer_size];
-				let mut buffer_libc = [1_u8; $buffer_size];
+test!(
+    ft_bzero(buffer_user: Unprintable<&mut [u8]>, to_replace: usize) {
+        let buffer_user = buffer_user.unwrap();
+        let mut buffer_libc = buffer_user.to_vec();
 
-				unsafe { crate::ft_bzero(buffer_user.as_mut_ptr() as *mut libc::c_void, $to_write) };
-				unsafe { libc::explicit_bzero(buffer_libc.as_mut_ptr() as *mut libc::c_void, $to_write) };
-				assert_eq!(buffer_libc, buffer_user);
-			}
-		}
-	};
-	($name: ident, $buffer_size: expr) => {
-		test!($name, $buffer_size, $buffer_size);
-	};
+        unsafe { libft::ft_bzero(buffer_user.as_mut_ptr().cast(), to_replace); };
+        unsafe { libc::explicit_bzero(buffer_libc.as_mut_ptr().cast(), to_replace); };
+
+        assert_eq!(buffer_user, buffer_libc, "your buffer and the libc buffer don't match");
+    }
+);
+
+crate::fork_test! {
+    #[test]
+    fn random() {
+        let mut buffer = fake::vec![u8; 1..10000];
+        let buffer_len = buffer.len();
+
+        test(Unprintable(Some(buffer.as_mut_slice())), (0..buffer_len).fake());
+    }
 }
-
-test!(basic, 1000);
-test!(replace_half, 1000, 500);
-test!(no_replace, 1000, 0);

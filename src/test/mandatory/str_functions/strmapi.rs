@@ -1,85 +1,50 @@
-use std::{cmp::Ordering, ffi::CString};
+use libc::{c_char, c_uint};
 
-fn rotx(index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        (((c - b'A') as usize + index) % 26) as u8 + b'A'
-    } else if c.is_ascii_lowercase() {
-        (((c - b'a') as usize + index) % 26) as u8 + b'a'
-    } else {
-        c
-    }
-}
+use crate::{
+    generate, libft,
+    test::{test, Unprintable},
+    utils, RANDOM_REPEAT_NUMBER,
+};
+use std::ffi::CString;
 
-fn rotone(_index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        ((c - b'A' + 1) % 26) + b'A'
-    } else if c.is_ascii_lowercase() {
-        ((c - b'a' + 1) % 26) + b'a'
-    } else {
-        c
-    }
-}
-
-fn to_num(index: usize, c: u8) -> u8 {
-    if c.is_ascii_uppercase() {
-        (((c - b'A') as usize + index) % 10) as u8 + b'0'
-    } else if c.is_ascii_lowercase() {
-        (((c - b'a') as usize + index) % 10) as u8 + b'0'
-    } else {
-        c
-    }
-}
-
-macro_rules! test {
-	($name: ident, $str: expr, $func: ident) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				let cchars = CString::new($str).unwrap();
-				let user_ret = unsafe { crate::ft_strmapi(cchars.as_ptr(), Some(crate::$func)) };
-				let expected = cchars.as_bytes().iter().enumerate().map(|(index, value)| $func(index, *value));
-				let bytes = unsafe { std::slice::from_raw_parts(user_ret as *mut u8, $str.len()) };
-				let expected_as_vec = expected.collect::<Vec<u8>>();
-				assert_eq!(expected_as_vec.as_slice().cmp(bytes), Ordering::Equal);
-				unsafe { libc::free(user_ret as *mut libc::c_void) };
-			}
-		}
-	};
-}
-
-test!(basic_rotone, "Bonjour", rotone);
 test!(
-    longer_rotone,
-    "Un super test de qualite n'est-ce pas",
-    rotone
-);
-test!(basic_rotx, "Bonjour", rotx);
-test!(longer_rotx, "Un super test de qualite n'est-ce pas", rotx);
-test!(basic_to_num, "Bonjour", to_num);
-test!(
-    longer_to_num,
-    "Un super test de qualite n'est-ce pas",
-    to_num
+    #![test "empty string" => "", Unprintable(Some(utils::rotone))]
+    ft_strmapi(s: &str, f: Unprintable<unsafe extern "C" fn(c_uint, c_char) -> c_char>) {
+        let f = f.unwrap();
+        let cchars = CString::new(s).unwrap();
+        let mapi_return = unsafe { libft::ft_strmapi(cchars.as_ptr(), Some(f)) };
+
+        let Some(user_string) = mapi_return else {
+            panic!("returned NULL");
+        };
+
+        // `.enumerate().map()` is literally the Rust equivalent of `mapi`.
+        // And we apply exactly the same function (f) in our rust code and in C
+        let expected: Vec<_> = cchars.as_bytes().iter().enumerate().map(|(index, value)| unsafe { f(index as u32, *value as i8) as u8 }).collect();
+        let expected = String::from_utf8_lossy(&expected);
+
+        assert_eq!(user_string.as_utf8_lossy(), expected, "wrong output");
+    }
 );
 
 crate::fork_test! {
     #[test]
     fn str_as_null() {
-        unsafe { crate::ft_strmapi(std::ptr::null(), Some(crate::rotx)) };
+        unsafe { libft::ft_strmapi(std::ptr::null(), Some(utils::rotx)) };
     }
 
     #[test]
     fn fn_as_null() {
-        let expected = CString::new("Bonjour").unwrap();
-        let ret = unsafe { crate::ft_strmapi(expected.as_ptr(), None) };
-        if ret.is_null() {
-            crate::verbose!("User chose to return NULL");
+        let content = c"Bonjour";
+
+        let expected = CString::from(content);
+        let ret = unsafe { libft::ft_strmapi(expected.as_ptr(), None) };
+        let Some(user_string) = ret else {
+            eprintln!("User chose to return NULL");
             return;
-        }
-        let content = unsafe { std::slice::from_raw_parts(ret as *mut u8, 8) };
-        if content == expected.as_bytes() {
-            unsafe { libc::free(ret as *mut libc::c_void) };
-            crate::verbose!("User chose to return a copy of str");
+        };
+        if content == user_string.as_c_str() {
+            eprintln!("User chose to return a copy of str");
             return;
         }
 
@@ -93,6 +58,48 @@ crate::fork_test! {
 
     #[test]
     fn both_null() {
-        unsafe { crate::ft_strmapi(std::ptr::null_mut(), None) };
+        unsafe { libft::ft_strmapi(std::ptr::null_mut(), None) };
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_rotone() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::alnum_string(), Unprintable(Some(utils::rotone)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters_rotone() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::utf8_string(), Unprintable(Some(utils::rotone)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_rotx() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::alnum_string(), Unprintable(Some(utils::rotx)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters_rotx() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::utf8_string(), Unprintable(Some(utils::rotx)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters_to_num() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::alnum_string(), Unprintable(Some(utils::to_num)));
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters_to_num() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::utf8_string(), Unprintable(Some(utils::to_num)));
+        }
     }
 }

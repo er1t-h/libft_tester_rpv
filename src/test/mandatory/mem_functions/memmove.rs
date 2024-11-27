@@ -1,65 +1,39 @@
-use libc::c_void;
+use crate::{
+    libft,
+    test::{test, DisplayableSlice},
+    RANDOM_REPEAT_NUMBER,
+};
+use fake::Fake;
 use pretty_assertions::assert_eq;
 
-macro_rules! test {
-    ($name: ident, $buffer_total_size: expr, $buffer_initial_content: expr, $offset_dest: expr, $offset_src: expr, $size_to_move: expr) => {
-        crate::fork_test!{
-            #[test]
-            fn $name() {
-                let mut buffer_user = [0_u8; $buffer_total_size];
-                let mut buffer_libc = [0_u8; $buffer_total_size];
-                let src = $buffer_initial_content;
-                unsafe {
-                    libc::memcpy(
-                        buffer_user.as_mut_ptr() as *mut c_void,
-                        src.as_ptr() as *const c_void,
-                        src.len(),
-                    );
-                    libc::memcpy(
-                        buffer_libc.as_mut_ptr() as *mut c_void,
-                        src.as_ptr() as *const c_void,
-                        src.len(),
-                    );
-                }
-                let destination = unsafe { buffer_user.as_mut_ptr().add($offset_dest) as *mut c_void };
-                let user_ret = unsafe {
-                    crate::ft_memmove(
-                        destination,
-                        buffer_user.as_ptr().add($offset_src) as *const c_void,
-                        $size_to_move,
-                    )
-                };
-                unsafe {
-                    libc::memmove(
-                        buffer_libc.as_mut_ptr().add($offset_dest) as *mut c_void,
-                        buffer_user.as_ptr().add($offset_src) as *const c_void,
-                        $size_to_move,
-                    );
-                };
-                assert_eq!(
-                    user_ret, destination,
-                    "The return value doesn't match dest."
-                );
-                assert_eq!(
-                    buffer_user, buffer_libc,
-                    "The content of the buffers differs"
-                );
-            }
-        }
-    };
-    ($name: ident, $buffer_total_size: expr, $buffer_initial_content: expr, $offset_dest: expr, $offset_src: expr) => {
-        test!(
-            $name,
-            $buffer_total_size,
-            $buffer_initial_content,
-            $offset_dest,
-            $offset_src,
-            $buffer_initial_content.len()
-        );
-    };
-}
+test!(
+    ft_memmove(buffer_user: DisplayableSlice<u8>, src: usize, dest: usize, to_copy: usize) {
+        let mut buffer_user = buffer_user.0.to_vec();
+        let mut buffer_libc = buffer_user.clone();
 
-test!(basic, 50, b"Bonjour mes chers amis !", 25, 0);
-test!(overlapping_at_begin, 50, b"Bonjour mes chers amis !", 0, 10);
-test!(overlapping_at_end, 50, b"Bonjour mes chers amis !", 10, 0);
-test!(no_offset, 35, b"Bonjour mes chers amis !", 0, 0);
+        unsafe {
+            libc::memmove(buffer_libc.as_mut_ptr().add(dest).cast(), buffer_libc.as_ptr().add(src).cast(), to_copy);
+            let ret = libft::ft_memmove(buffer_user.as_mut_ptr().add(dest).cast(), buffer_user.as_ptr().add(src).cast(), to_copy);
+            assert_eq!(Some(buffer_user.as_ptr().add(dest).cast_mut().cast()), ret, "did not return a pointer to dest");
+        }
+
+        assert_eq!(buffer_user, buffer_libc, "the two buffers mismatch");
+    }
+);
+
+crate::fork_test! {
+    #[test]
+    fn random() {
+        eprintln!("how to read this test:");
+        eprintln!("ft_memmove(`buffer`, `src`, `dest`, `to_copy`);");
+        eprintln!("given the input buffer, it tests ft_memmove(buffer + dest, buffer + src, to_copy)");
+
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let buffer = fake::vec![u8; 1..8000];
+            let len = buffer.len();
+            let src: usize = (0..len).fake();
+            let dest = (0..len).fake();
+            test(DisplayableSlice(&buffer), src, dest, (0..(len - dest.max(src))).fake());
+        }
+    }
+}

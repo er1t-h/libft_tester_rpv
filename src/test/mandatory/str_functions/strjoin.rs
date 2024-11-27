@@ -1,46 +1,42 @@
-use crate::verbose;
-use std::{ffi::CString, slice::from_raw_parts};
+use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::assert_str_eq;
+use std::ffi::CString;
 
-macro_rules! test {
-	($name: ident, $s1: expr, $s2: expr) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				let s1 = CString::new($s1).unwrap();
-				let s2 = CString::new($s2).unwrap();
-				let user_ret = unsafe {
-					crate::ft_strjoin(s1.as_ptr(), s2.as_ptr())
-				};
-				let content = unsafe { from_raw_parts(user_ret as *mut u8, s1.as_bytes().len() + s2.as_bytes_with_nul().len()) };
-				assert_eq!([s1.as_bytes(), s2.as_bytes_with_nul()].concat(), content);
-				unsafe {libc::free(user_ret as *mut libc::c_void)};
-			}
-		}
-	};
-}
+test!(
+    #![test "first string empty" => "", "second only"]
+    #![test "second string empty" => "first_only", ""]
+    #![test "both string empty" => "", ""]
+    ft_strjoin(s1: &str, s2: &str) {
+        let c_s1 = CString::new(s1).unwrap();
+        let c_s2 = CString::new(s2).unwrap();
+        let user_string = unsafe {
+            libft::ft_strjoin(c_s1.as_ptr(), c_s2.as_ptr())
+        };
 
-test!(basic, "Salut ", "toi");
+        let Some(user_string) = user_string else {
+            panic!("returned NULL");
+        };
 
-test!(basic_2, "Bon on continue les tests", " en fait");
-test!(first_empty, "", " en fait");
-test!(second_empty, "hey", "");
-test!(both_empty, "", "");
+        let expected = s1.to_string() + s2;
+        let user_string = user_string.as_utf8_lossy();
+
+        assert_str_eq!(user_string, expected, "wrong function output");
+    }
+);
 
 crate::fork_test! {
     #[test]
     fn first_null() {
         let s2 = CString::new("anything").unwrap();
-        let user_ret = unsafe {
-            crate::ft_strjoin(std::ptr::null(), s2.as_ptr())
+        let user_string = unsafe {
+            libft::ft_strjoin(std::ptr::null(), s2.as_ptr())
         };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
+        let Some(user_string) = user_string else {
+            eprintln!("User choosed to handle by returning NULL");
             return;
-        }
-        let content = unsafe { from_raw_parts(user_ret as *mut u8, s2.as_bytes_with_nul().len()) };
-        if s2.as_bytes_with_nul() == content {
-            unsafe {libc::free(user_ret as *mut libc::c_void)};
-            verbose!("User choosed to handle by allocating only s2");
+        };
+        if s2.as_bytes() == user_string.as_c_str().to_bytes() {
+            eprintln!("User choosed to handle by allocating only s2");
             return;
         }
         // If you go through here, you handled passing NULL in a way I didn't anticipate.
@@ -50,23 +46,19 @@ crate::fork_test! {
         // a Crash flag.
         panic!("Handled passing NULL to strjoin in a strange way");
     }
-}
 
-crate::fork_test! {
     #[test]
     fn second_null() {
         let s1 = CString::new("anything").unwrap();
-        let user_ret = unsafe {
-            crate::ft_strjoin(s1.as_ptr(), std::ptr::null())
+        let user_string = unsafe {
+            libft::ft_strjoin(s1.as_ptr(), std::ptr::null())
         };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
+        let Some(user_string) = user_string else {
+            eprintln!("User choosed to handle by returning NULL");
             return;
-        }
-        let content = unsafe { from_raw_parts(user_ret as *mut u8, s1.as_bytes_with_nul().len()) };
-        if s1.as_bytes_with_nul() == content {
-            unsafe {libc::free(user_ret as *mut libc::c_void)};
-            verbose!("User choosed to handle by allocating only s1");
+        };
+        if s1.as_bytes() == user_string.as_c_str().to_bytes() {
+            eprintln!("User choosed to handle by allocating only s1");
             return;
         }
         // If you go through here, you handled passing NULL in a way I didn't anticipate.
@@ -76,21 +68,18 @@ crate::fork_test! {
         // a Crash flag.
         panic!("Handled passing NULL to strjoin in a strange way");
     }
-}
 
-crate::fork_test! {
     #[test]
     fn both_null() {
-        let user_ret = unsafe {
-            crate::ft_strjoin(std::ptr::null(), std::ptr::null())
+        let user_string = unsafe {
+            libft::ft_strjoin(std::ptr::null(), std::ptr::null())
         };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
+        let Some(user_string) = user_string else {
+            eprintln!("User choosed to handle by returning NULL");
             return;
-        }
-        if unsafe { *user_ret } == 0 {
-            unsafe {libc::free(user_ret as *mut libc::c_void)};
-            verbose!("Creating an empty string");
+        };
+        if user_string.is_empty() {
+            eprintln!("Creating an empty string");
             return;
         }
 
@@ -100,5 +89,28 @@ crate::fork_test! {
         // because you didn't handle having NULL as an argument, you should get
         // a Crash flag.
         panic!("Handled passing NULL to strjoin in a strange way");
+    }
+
+    #[test]
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            // Generates between 2 and 500 words that will be joined by random string
+            // with len between 0 and 10
+            let s1 = generate::alnum_string();
+            let s2 = generate::alnum_string();
+
+            test(&s1, &s2);
+        }
+    }
+
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            // Generates between 10 and 2000 utf8 characters
+            let s1: String = generate::utf8_string();
+            let s2: String = generate::utf8_string();
+
+            test(&s1, &s2);
+        }
     }
 }

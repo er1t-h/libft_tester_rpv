@@ -30,7 +30,7 @@ test!(basic, 3);
 test!(many_items, 100);
 test!(empty, 0);
 
-crate::fork_test!{
+crate::fork_test! {
     #[test]
     fn del_as_null() {
         let mut list = std::ptr::null_mut();

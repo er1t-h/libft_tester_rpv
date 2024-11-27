@@ -1,19 +1,25 @@
-use crate::fork_test;
-use crate::verbose;
+use libc::c_int;
+
+use crate::{fork_test, libft, test::test};
+
+test!(
+    ft_toupper(c: char) {
+        let user_ret = unsafe {
+            libft::ft_toupper(c as c_int)
+        };
+        let libc_ret = unsafe {
+            libc::toupper(c as c_int)
+        };
+
+        assert_eq!(user_ret, libc_ret, "character mismatch");
+    }
+);
 
 fork_test! {
     #[test]
-    fn test() {
-        for i in 0..=255 {
-            let user_ret = unsafe {
-                crate::ft_toupper(i)
-            };
-            let libc_ret = unsafe {
-                libc::toupper(i)
-            };
-
-            verbose!("Current char: {}", i);
-            assert_eq!(user_ret, libc_ret);
+    fn all_chars() {
+        for c in 0..=255_u8 {
+            test(c as char)
         }
     }
 }

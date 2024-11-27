@@ -1,79 +1,68 @@
+use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use fake::Fake;
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
 
-macro_rules! test {
-	($name: ident, $str: expr, $start: expr, $len: expr) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				#[allow(unused_comparisons)]
-				const NUMBER_OF_CHAR: usize = if $len > $str.len() - $start {$str.len() - $start} else {$len};
-				let base_str = CString::new($str).unwrap();
-				let result = unsafe {
-					crate::ft_substr(base_str.as_ptr(), $start, $len)
-				};
-				let content = unsafe {
-					std::slice::from_raw_parts(result as *mut u8, NUMBER_OF_CHAR + 1)
-				};
-				crate::verbose!("User ret: `{}`", std::str::from_utf8(content).unwrap());
-				crate::verbose!("Expected: `{}`", &$str[$start..$start + NUMBER_OF_CHAR]);
-				assert_eq!(&content[..NUMBER_OF_CHAR], &$str.as_bytes()[$start..$start + NUMBER_OF_CHAR]);
-				assert_eq!(*content.last().unwrap(), 0);
-				unsafe {libc::free(result as *mut libc::c_void)};
-			}
-		}
-	};
-}
+test!(
+    #![test "way_too_big_buffer" => "Hello, World!", 2, (isize::MAX - 10) as usize]
+    ft_substr(s: &str, start: usize, len: usize) {
+        let end_index = s.len().min(start.saturating_add(len));
+        let expected = String::from_utf8_lossy(&s.as_bytes()[start..end_index]);
 
-test!(basic, "SuperTest", 1, 7);
-test!(no_copy, "SuperTest", 1, 0);
-// If this test failed, the user probably allocates $len without verifying that
-// it needs that much character. I'd consider it false, but that's debatable.
-test!(bigger_buffer, "SuperTest", 0, libc::size_t::MAX);
+        let base_str = CString::new(s).expect("DPS: couldn't create string");
+        let result = unsafe {
+            libft::ft_substr(base_str.as_ptr(), start as u32, len)
+        };
+
+        let Some(user_return) = result else {
+            panic!("returned NULL");
+        };
+        assert_eq!(
+            user_return.as_utf8_lossy(), expected,
+            "wrong function output"
+        );
+    }
+);
 
 crate::fork_test! {
+
     #[test]
     fn start_after_end_of_string() {
         let base_str = CString::new("SuperTest").unwrap();
         let result = unsafe {
-            crate::ft_substr(base_str.as_ptr(), 1000, 6)
+            libft::ft_substr(base_str.as_ptr(), 1000, 6)
         };
-        if result.is_null() {
-            crate::verbose!("User choose to handle passing a start higher than len \
+        let Some(user_return) = result else {
+            eprintln!("User choose to handle passing a start higher than len \
                             by returning NULL.");
             return;
-        }
-        if unsafe { *result } == 0 {
-            unsafe {libc::free(result as *mut libc::c_void)};
-            crate::verbose!("User choose to handle passing a start higher than len \
-                            by returning an empty string.");
-            return;
-        }
-
-        // If you go through here, you handled passing NULL in a way I didn't anticipate.
-        // If you can explain it clearly, you may ignore this failing test.
-        // However, if you let your code crash with this test
-        // because you didn't handle having NULL as an argument, you should get
-        // a Crash flag.
-        panic!("Handled passing start higher than len to substr in a strange way");
+        };
+        assert!(user_return.is_empty(), "the returned string should be empty");
     }
 
 
     #[test]
     fn null() {
         let result = unsafe {
-            crate::ft_substr(std::ptr::null(), 1000, 6)
+            libft::ft_substr(std::ptr::null(), 1000, 6)
         };
-        if result.is_null() {
-            crate::verbose!("User choose to handle passing a start higher than len \
-                            by returning NULL.");
-            return;
-        }
+        assert!(result.is_none(), "With null as input, you should return NULL");
+    }
 
-        // If you go through here, you handled passing NULL in a way I didn't anticipate.
-        // If you can explain it clearly, you may ignore this failing test.
-        // However, if you let your code crash with this test
-        // because you didn't handle having NULL as an argument, you should get
-        // a Crash flag.
-        panic!("Handled passing NULL to substr in a strange way");
+    #[test]
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let str = generate::alnum_string();
+            test(&str, (2..str.len()).fake(), (0..3000).fake());
+        }
+    }
+
+
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let str = generate::utf8_string();
+            test(&str, (2..str.as_bytes().len()).fake(), (0..5000).fake());
+        }
     }
 }

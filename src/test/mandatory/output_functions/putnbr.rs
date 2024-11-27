@@ -1,23 +1,32 @@
-use std::{fs::File, os::unix::prelude::AsRawFd};
+use fake::{Fake, Faker};
+use libc::c_int;
 
-macro_rules! test {
-    ($name: ident, $to_write: expr) => {
-        crate::fork_test! {
-            #[test]
-            fn $name() {
-                let filename = format!(".tests_putnbr/{}.txt", line!());
-                let file = File::create(&filename).unwrap();
-                let fd = file.as_raw_fd();
-                unsafe { crate::ft_putnbr_fd($to_write, fd) }
-                let content = std::fs::read_to_string(filename).unwrap();
-                assert_eq!(&content[..content.len()], $to_write.to_string(), "Doesn't match");
-            }
+use crate::{libft, test::test, RANDOM_REPEAT_NUMBER};
+use std::{fs::File, io::Read, os::fd::FromRawFd};
+
+test!(
+    #![test "zero" => 0]
+    #![test "int min" => c_int::MIN]
+    #![test "int max" => c_int::MAX]
+    ft_putnbr_fd(nb: c_int) {
+        unsafe {
+            let [read, write] = super::pipe();
+            let _write = File::from_raw_fd(write);
+            let mut read = File::from_raw_fd(read);
+            libft::ft_putnbr_fd(nb, write);
+            std::mem::drop(_write);
+            let mut buffer = Vec::new();
+            read.read_to_end(&mut buffer).expect("DPS: couldn't read");
+            assert_eq!(String::from_utf8_lossy(&buffer), nb.to_string(), "didn't print the right thing");
         }
-    };
-}
+    }
+);
 
-test!(basic, 11037);
-test!(basic_negative, -11037);
-test!(int_min, -2147483648);
-test!(int_max, 2147483647);
-test!(zero, 0);
+crate::fork_test! {
+    #[test]
+    fn random_tests() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(Faker.fake());
+        }
+    }
+}

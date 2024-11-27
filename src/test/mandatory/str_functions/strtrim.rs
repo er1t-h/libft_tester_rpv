@@ -1,44 +1,51 @@
-use crate::verbose;
+use fake::Fake;
+
+use crate::test::test;
+use crate::{generate, libft, RANDOM_REPEAT_NUMBER};
 use std::ffi::CString;
 
-macro_rules! test {
-	($name: ident, $str: expr, $set: expr) => {
-		crate::fork_test!{
-			#[test]
-			fn $name() {
-				let str = CString::new($str).unwrap();
-				let set = CString::new($set).unwrap();
-				let user_ret = unsafe {
-					crate::ft_strtrim(str.as_ptr(), set.as_ptr())
-				};
-				let trimmed_ret = CString::new($str.trim_matches(|x| $set.contains(x))).unwrap();
-				let content = unsafe { std::slice::from_raw_parts(user_ret as *mut u8, trimmed_ret.as_bytes_with_nul().len()) };
-				assert_eq!(content, trimmed_ret.as_bytes_with_nul());
-				unsafe { libc::free(user_ret as *mut libc::c_void) };
-			}
-		}
-	};
-}
+test!(
+    #![test "empty string" => "", "0123456789"]
+    #![test "empty set" => "1HelloWorld1", ""]
+    ft_strtrim(s: &str, set: &str) {
+        let c_s = CString::new(s).expect("DPS: couldn't create string");
+        let c_set = CString::new(set).expect("DPS: couldn't create string");
 
-test!(basic, "Bonjour", "Br");
-test!(trim_all, "Bonjour", "nojurB");
-test!(utf8, "🀄Super🀄", "🀄");
-test!(trim_none, "🀄Super🀄", "BOFPASTRP");
+        let user_ret = unsafe {
+            libft::ft_strtrim(c_s.as_ptr(), c_set.as_ptr())
+        };
+        let Some(user_string) = user_ret else {
+            panic!("returned NULL");
+        };
+
+        let trim_begin = s.as_bytes().iter().position(|x| !set.as_bytes().contains(x));
+        let trim_end = s.as_bytes().iter().rposition(|x| !set.as_bytes().contains(x));
+
+        let expected_slice = match trim_begin.zip(trim_end) {
+            Some((begin, end)) => &s.as_bytes()[begin..=end],
+            None => {
+                assert!(user_string.is_empty(), "the string should have been empty");
+                return;
+            }
+        };
+
+        assert_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(expected_slice), "wrong function output")
+    }
+);
 
 crate::fork_test! {
     #[test]
     fn first_null() {
-        let set = CString::new("Super").unwrap();
+        let set = CString::from(c"Super");
         let user_ret = unsafe {
-            crate::ft_strtrim(std::ptr::null(), set.as_ptr())
+            libft::ft_strtrim(std::ptr::null(), set.as_ptr())
         };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
+        let Some(user_string) = user_ret else {
+            eprintln!("User choosed to handle by returning NULL");
             return;
-        }
-        if unsafe { *user_ret } == 0 {
-            unsafe {libc::free(user_ret as *mut libc::c_void)};
-            verbose!("Creating an empty string");
+        };
+        if user_string.is_empty() {
+            eprintln!("Creating an empty string");
             return;
         }
 
@@ -52,18 +59,29 @@ crate::fork_test! {
 
     #[test]
     fn second_null() {
-        let str = CString::new("Super").unwrap();
+        let str = CString::from(c"Super");
         let user_ret = unsafe {
-            crate::ft_strtrim(str.as_ptr(), std::ptr::null())
+            libft::ft_strtrim(str.as_ptr(), std::ptr::null())
         };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
+        eprintln!("after");
+        let Some(user_string) = user_ret else {
+            eprintln!("User choosed to handle by returning NULL");
             return;
-        }
-        let content = unsafe { std::slice::from_raw_parts(user_ret as *mut u8, str.as_bytes_with_nul().len()) };
-        if str.as_bytes_with_nul() == content {
-            unsafe { libc::free(user_ret as *mut libc::c_void) };
-            verbose!("Creating a copy");
+        };
+        assert_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(str.as_bytes()), "the string should have been copied");
+    }
+
+    #[test]
+    fn both_null() {
+        let user_ret = unsafe {
+            libft::ft_strtrim(std::ptr::null(), std::ptr::null())
+        };
+        let Some(user_string) = user_ret else {
+            eprintln!("User choosed to handle by returning NULL");
+            return;
+        };
+        if user_string.is_empty() {
+            eprintln!("Creating an empty string");
             return;
         }
 
@@ -76,25 +94,16 @@ crate::fork_test! {
     }
 
     #[test]
-    fn both_null() {
-        let user_ret = unsafe {
-            crate::ft_strtrim(std::ptr::null(), std::ptr::null())
-        };
-        if user_ret.is_null() {
-            verbose!("User choosed to handle by returning NULL");
-            return;
+    fn random_test_with_alphanumeric_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::alnum_string(), &(1..10).fake::<String>());
         }
-        if unsafe { *user_ret } == 0 {
-            unsafe {libc::free(user_ret as *mut libc::c_void)};
-            verbose!("Creating an empty string");
-            return;
-        }
+    }
 
-        // If you go through here, you handled passing NULL in a way I didn't anticipate.
-        // If you can explain it clearly, you may ignore this failing test.
-        // However, if you let your code crash with this test
-        // because you didn't handle having NULL as an argument, you should get
-        // a Crash flag.
-        panic!("Handled passing NULL to strtrim in a strange way");
+    #[test]
+    fn random_test_with_utf8_characters() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            test(&generate::utf8_string(), &(1..10).fake::<String>());
+        }
     }
 }
