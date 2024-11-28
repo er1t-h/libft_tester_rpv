@@ -1,6 +1,6 @@
 use libc::c_int;
-
 use crate::{fork_test, libft, test::test};
+use pretty_assertions::assert_eq;
 
 test!(
     ft_tolower(c: char) {

@@ -5,6 +5,7 @@ use crate::{
     test::{test, Unprintable},
     utils, RANDOM_REPEAT_NUMBER,
 };
+use pretty_assertions::assert_str_eq;
 use std::ffi::CString;
 
 test!(
@@ -23,7 +24,7 @@ test!(
         let expected: Vec<_> = cchars.as_bytes().iter().enumerate().map(|(index, value)| unsafe { f(index as u32, *value as i8) as u8 }).collect();
         let expected = String::from_utf8_lossy(&expected);
 
-        assert_eq!(user_string.as_utf8_lossy(), expected, "wrong output");
+        assert_str_eq!(user_string.as_utf8_lossy(), expected, "wrong output");
     }
 );
 

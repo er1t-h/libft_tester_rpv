@@ -19,7 +19,9 @@ pub unsafe extern "C" fn all_plus_one(elt: *mut c_void) {
 
 pub unsafe extern "C" fn clone_and_all_plus_one(elt: *mut c_void) -> *mut c_void {
     let input = CStr::from_ptr(elt.cast());
-    let ptr = ft_strdup(input.as_ptr()).expect("strdup returned NULL").leak();
+    let ptr = ft_strdup(input.as_ptr())
+        .expect("strdup returned NULL")
+        .leak();
     all_plus_one(ptr.cast());
     ptr.cast()
 }

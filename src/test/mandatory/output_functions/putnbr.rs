@@ -1,7 +1,7 @@
+use crate::{libft, test::test, RANDOM_REPEAT_NUMBER};
 use fake::{Fake, Faker};
 use libc::c_int;
-
-use crate::{libft, test::test, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::assert_str_eq;
 use std::{fs::File, io::Read, os::fd::FromRawFd};
 
 test!(
@@ -17,7 +17,7 @@ test!(
             std::mem::drop(_write);
             let mut buffer = Vec::new();
             read.read_to_end(&mut buffer).expect("DPS: couldn't read");
-            assert_eq!(String::from_utf8_lossy(&buffer), nb.to_string(), "didn't print the right thing");
+            assert_str_eq!(String::from_utf8_lossy(&buffer), nb.to_string(), "didn't print the right thing");
         }
     }
 );

@@ -1,7 +1,6 @@
+use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
 use fake::{Fake, Faker};
 use pretty_assertions::assert_str_eq;
-
-use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
 use std::ffi::CString;
 
 test!(

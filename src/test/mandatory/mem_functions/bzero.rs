@@ -13,6 +13,7 @@ use crate::{
     test::{test, Unprintable},
 };
 use fake::Fake;
+use pretty_assertions::assert_eq;
 
 test!(
     ft_bzero(buffer_user: Unprintable<&mut [u8]>, to_replace: usize) {

@@ -1,6 +1,6 @@
 use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
 use fake::Fake;
-use pretty_assertions::assert_eq;
+use pretty_assertions::assert_str_eq;
 use std::ffi::CString;
 
 test!(
@@ -17,7 +17,7 @@ test!(
         let Some(user_return) = result else {
             panic!("returned NULL");
         };
-        assert_eq!(
+        assert_str_eq!(
             user_return.as_utf8_lossy(), expected,
             "wrong function output"
         );

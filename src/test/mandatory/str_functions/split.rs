@@ -1,6 +1,7 @@
 use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
 use fake::{Fake, Faker};
 use libc::c_char;
+use pretty_assertions::{assert_eq, assert_str_eq};
 use std::ffi::CString;
 
 test!(
@@ -17,7 +18,7 @@ test!(
 
         let expected: Vec<&[u8]> = s.as_bytes().split(|&x| x as i8 == delimiter as i8).filter(|x| !x.is_empty()).collect();
 
-        assert_eq!(expected.len(), user_table.len(), "wrong table len");
+        assert_eq!(user_table.len(), expected.len(), "wrong table len");
 
         for (i, part) in expected.into_iter().filter(|x| !x.is_empty()).enumerate() {
             let cstr = &user_table[i];
@@ -25,7 +26,7 @@ test!(
 
             let expected_string = String::from_utf8_lossy(part);
 
-            assert_eq!(user_ret, expected_string, "wrong output for part {i}");
+            assert_str_eq!(user_ret, expected_string, "wrong output for part {i}");
         }
     }
 );

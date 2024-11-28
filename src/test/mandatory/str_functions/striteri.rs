@@ -1,11 +1,10 @@
-use libc::{c_char, c_uint};
-use pretty_assertions::assert_str_eq;
-
 use crate::{
     generate, libft,
     test::{test, Unprintable},
     utils, RANDOM_REPEAT_NUMBER,
 };
+use libc::{c_char, c_uint};
+use pretty_assertions::assert_str_eq;
 use std::ffi::CString;
 
 test!(
@@ -41,7 +40,7 @@ crate::fork_test! {
         let expected = String::from_utf8_lossy(expected.to_bytes());
         let user_return = String::from_utf8_lossy(cchars.as_bytes());
 
-        assert_eq!(user_return, expected, "string was changed but function was NULL");
+        assert_str_eq!(user_return, expected, "string was changed but function was NULL");
     }
 
     #[test]

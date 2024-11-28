@@ -1,7 +1,7 @@
-use fake::Fake;
-
 use crate::test::test;
 use crate::{generate, libft, RANDOM_REPEAT_NUMBER};
+use fake::Fake;
+use pretty_assertions::assert_str_eq;
 use std::ffi::CString;
 
 test!(
@@ -29,7 +29,7 @@ test!(
             }
         };
 
-        assert_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(expected_slice), "wrong function output")
+        assert_str_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(expected_slice), "wrong function output")
     }
 );
 
@@ -68,7 +68,7 @@ crate::fork_test! {
             eprintln!("User choosed to handle by returning NULL");
             return;
         };
-        assert_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(str.as_bytes()), "the string should have been copied");
+        assert_str_eq!(user_string.as_utf8_lossy(), String::from_utf8_lossy(str.as_bytes()), "the string should have been copied");
     }
 
     #[test]

@@ -1,13 +1,8 @@
-use std::{
-    env::current_dir,
-    ffi::CStr,
-    ops::Deref,
-    sync::LazyLock,
-};
+use std::{env::current_dir, ffi::CStr, ops::Deref, sync::LazyLock};
 
+use super::{OwnedCPointer, OwnedCString, SplitTable, TListNode};
+use libc::{c_char, c_int, c_uint, c_void, size_t};
 use libloading::{Library, Symbol};
-use super::{SplitTable, OwnedCPointer, OwnedCString, TListNode};
-use libc::{c_char, c_int, c_void, size_t, c_uint};
 
 pub static LIBRARY: LazyLock<Library> = LazyLock::new(|| unsafe {
     Library::new(format!(
@@ -95,7 +90,6 @@ macro_rules! function_wrapper {
         function_wrapper!($($rest)*);
     };
 }
-
 
 function_wrapper! {
     ft_isalpha(c: c_int) -> c_int;

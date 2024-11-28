@@ -1,4 +1,5 @@
 use crate::{fork_test, libft, test::test};
+use pretty_assertions::assert_eq;
 use std::{fs::File, io::Read, os::fd::FromRawFd};
 
 test!(

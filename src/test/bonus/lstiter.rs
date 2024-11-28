@@ -1,6 +1,11 @@
+use crate::{
+    libft::{self, TListHandle},
+    test::{test, DisplayableStringSlice},
+    utils, RANDOM_REPEAT_NUMBER,
+};
 use fake::{faker::lorem::ja_jp::Words, Fake};
+use pretty_assertions::assert_eq;
 use std::ffi::{CStr, CString};
-use crate::{libft::{self, TListHandle}, test::{test, DisplayableStringSlice}, utils, RANDOM_REPEAT_NUMBER};
 
 test!(
     ft_lstiter(list: DisplayableStringSlice<&str>) {

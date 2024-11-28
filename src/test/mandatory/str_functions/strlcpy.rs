@@ -1,6 +1,7 @@
 use fake::Fake;
 
 use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::{assert_eq, assert_str_eq};
 use std::ffi::CString;
 
 // Rust's libc wrapper don't have BSD/string.h to include strlcpy.
@@ -22,7 +23,7 @@ test!(
         let user_return = String::from_utf8_lossy(&buffer[..to_compare_max]);
         let expected = String::from_utf8_lossy(&test_str.as_bytes()[..to_compare_max]);
 
-        assert_eq!(user_return, expected, "wrong buffer content"); // Check that copy occurred
+        assert_str_eq!(user_return, expected, "wrong buffer content"); // Check that copy occurred
         assert_eq!(buffer[to_compare_max], 0, "buffer is not nul-terminated"); // Check NUL-termination
     }
 );

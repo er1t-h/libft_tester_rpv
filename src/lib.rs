@@ -50,19 +50,6 @@ macro_rules! assert_nzero {
 }
 
 #[allow(unused_macros)]
-#[cfg(feature = "verbose")]
-macro_rules! verbose {
-    ($($args: expr),+) => {
-        println!($($args),+);
-    };
-}
-#[allow(unused_macros)]
-#[cfg(not(feature = "verbose"))]
-macro_rules! verbose {
-    ($($args: expr),+) => {};
-}
-
-#[allow(unused_macros)]
 #[cfg(feature = "fork")]
 macro_rules! fork_test {
     (#![rusty_fork(timeout_ms = $timeout: expr)]
@@ -124,5 +111,3 @@ pub(crate) use assert_nzero;
 pub(crate) use assert_same_sign;
 #[allow(unused_imports)]
 pub(crate) use fork_test;
-#[allow(unused_imports)]
-pub(crate) use verbose;

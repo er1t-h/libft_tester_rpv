@@ -1,5 +1,8 @@
 use std::{
-    borrow::Cow, ffi::CStr, marker::PhantomData, ops::{Deref, Index}
+    borrow::Cow,
+    ffi::CStr,
+    marker::PhantomData,
+    ops::{Deref, Index},
 };
 
 mod functions;
@@ -135,21 +138,15 @@ pub struct TListNode {
 
 impl TListNode {
     pub fn new_opt(data: *mut c_void) -> Option<*mut TListNode> {
-        unsafe {
-            ft_lstnew(data)
-        }
+        unsafe { ft_lstnew(data) }
     }
 
     pub fn new_panicking(data: *mut c_void) -> *mut TListNode {
-        unsafe {
-            ft_lstnew(data).expect("ft_lstnew shouldn't return NULL")
-        }
+        unsafe { ft_lstnew(data).expect("ft_lstnew shouldn't return NULL") }
     }
 
     pub fn new(data: *mut c_void) -> *mut TListNode {
-        unsafe {
-            ft_lstnew(data).unwrap_or(std::ptr::null_mut())
-        }
+        unsafe { ft_lstnew(data).unwrap_or(std::ptr::null_mut()) }
     }
 }
 
@@ -159,11 +156,11 @@ pub struct TListHandle {
 }
 
 impl TListHandle {
-    pub fn new(front: *mut TListNode, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) -> Self {
-        Self {
-            front,
-            destroyer,
-        }
+    pub fn new(
+        front: *mut TListNode,
+        destroyer: Option<unsafe extern "C" fn(*mut c_void)>,
+    ) -> Self {
+        Self { front, destroyer }
     }
 
     pub fn len(&self) -> usize {
@@ -186,11 +183,15 @@ impl TListHandle {
     }
 
     pub fn add_front(&mut self, data: *mut TListNode) {
-        unsafe { ft_lstadd_front(&mut self.front, data); }
+        unsafe {
+            ft_lstadd_front(&mut self.front, data);
+        }
     }
 
     pub fn add_back(&mut self, data: *mut TListNode) {
-        unsafe { ft_lstadd_back(&mut self.front, data); }
+        unsafe {
+            ft_lstadd_back(&mut self.front, data);
+        }
     }
 
     pub fn clear(&mut self) {
@@ -202,14 +203,17 @@ impl TListHandle {
     }
 
     pub fn iter(&self) -> TListIter {
-        TListIter { inner: self.front, _phantom: PhantomData }
+        TListIter {
+            inner: self.front,
+            _phantom: PhantomData,
+        }
     }
 
-    pub fn set_destroyer(&mut self, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) {
+    pub fn set_destroyer(&mut self, destroyer: Option<unsafe extern "C" fn(*mut c_void)>) {
         self.destroyer = destroyer;
     }
 
-    pub fn with_destroyer(mut self, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) -> Self {
+    pub fn with_destroyer(mut self, destroyer: Option<unsafe extern "C" fn(*mut c_void)>) -> Self {
         self.set_destroyer(destroyer);
         self
     }
@@ -223,13 +227,16 @@ impl TListHandle {
     }
 }
 
-impl <P> FromIterator<*mut P> for TListHandle {
+impl<P> FromIterator<*mut P> for TListHandle {
     fn from_iter<T: IntoIterator<Item = *mut P>>(iter: T) -> Self {
         let mut iter = iter.into_iter();
         let Some(first_item) = iter.next() else {
             return TListHandle::new(std::ptr::null_mut(), None);
         };
-        let ret = TListHandle { front: TListNode::new_panicking(first_item.cast()), destroyer: None };
+        let ret = TListHandle {
+            front: TListNode::new_panicking(first_item.cast()),
+            destroyer: None,
+        };
         let mut current = ret.front;
         for item in iter {
             unsafe {
@@ -250,7 +257,7 @@ impl Drop for TListHandle {
 
 pub struct TListIter<'a> {
     inner: *const TListNode,
-    _phantom: PhantomData<&'a ()>
+    _phantom: PhantomData<&'a ()>,
 }
 
 impl Iterator for TListIter<'_> {

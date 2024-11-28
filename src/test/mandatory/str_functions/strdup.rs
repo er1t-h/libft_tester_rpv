@@ -1,4 +1,5 @@
 use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::assert_str_eq;
 use std::ffi::CString;
 
 test!(
@@ -11,7 +12,7 @@ test!(
         let Some(user_string) = user_string else {
             panic!("returned NULL");
         };
-        assert_eq!(s, user_string.as_utf8_lossy(), "wrong function output");
+        assert_str_eq!(user_string.as_utf8_lossy(), s, "wrong function output");
     }
 );
 

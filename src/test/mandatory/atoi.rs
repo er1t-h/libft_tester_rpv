@@ -4,7 +4,6 @@ use libc::c_int;
 use pretty_assertions::assert_eq;
 use std::ffi::CString;
 
-
 test!(
     #![test "int min" => "-2147483648"]
     #![test "int max" => "+2147483647"]

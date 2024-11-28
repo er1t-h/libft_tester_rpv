@@ -1,8 +1,11 @@
-use std::ffi::{CStr, CString};
-
+use crate::{
+    libft::{TListHandle, TListNode},
+    test::{test, DisplayableStringSlice},
+    RANDOM_REPEAT_NUMBER,
+};
 use fake::Fake;
-
-use crate::{libft::{TListHandle, TListNode}, test::{test, DisplayableStringSlice}, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::assert_eq;
+use std::ffi::{CStr, CString};
 
 test!(
     ft_lstadd_front(elements: DisplayableStringSlice<&str>, pre_add: usize) {
@@ -27,7 +30,7 @@ test!(
     }
 );
 
-crate::fork_test!{
+crate::fork_test! {
     #[test]
     fn random() {
         eprintln!("How to read those tests");

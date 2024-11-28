@@ -8,9 +8,8 @@
 //! For the zero tests, as long as you don't crash or return a wrong pointer,
 //! everything should be good
 //!
-use fake::Fake;
-
 use crate::{libft, test::test, RANDOM_REPEAT_NUMBER};
+use fake::Fake;
 
 test!(
     ft_calloc(nmemb: usize, size: usize) {

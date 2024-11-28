@@ -5,6 +5,7 @@ use crate::{
     test::{test, DisplayableStringSlice},
     RANDOM_REPEAT_NUMBER,
 };
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
 
 // Rust's libc wrapper don't have BSD/string.h to include strlcat

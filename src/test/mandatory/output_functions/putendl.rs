@@ -1,5 +1,6 @@
 use crate::{generate, RANDOM_REPEAT_NUMBER};
 use crate::{libft, test::test};
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Read;

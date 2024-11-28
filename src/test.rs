@@ -5,7 +5,7 @@ use std::{
 
 mod mandatory;
 
-// #[cfg(feature = "bonus")]
+#[cfg(feature = "bonus")]
 mod bonus;
 
 ///

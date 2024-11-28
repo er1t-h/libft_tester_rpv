@@ -1,4 +1,5 @@
 use crate::{generate, libft, test::test, RANDOM_REPEAT_NUMBER};
+use pretty_assertions::assert_eq;
 use std::ffi::CString;
 
 test!(
