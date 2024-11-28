@@ -34,7 +34,7 @@ This will run all 134 tests, with 5000 different inputs for each of the 48 rando
 First, add the `-fPIC` flag to the compile flags (next to `-Wall -Wextra -Werror`). Run `make fclean` and `make bonus`. Then copy-paste:
 
 ```sh
-cc -o libft.so -shared **/*.o
+cc -o libft.so -shared -Wl,--whole-archive libft.a -Wl,--no-whole-archive
 wget https://github.com/er1t-h/libft_monkey_tester/releases/latest/download/libft_tester
 chmod +x libft_tester
 LIBFT_TESTER_RANDOM_REPEAT=5000 ./libft_tester
