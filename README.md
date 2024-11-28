@@ -30,7 +30,8 @@ valgrind --leak-check=full --trace-children=yes --show-leak-kinds=all --log-file
 
 ## Setup (copy-paste and execute)
 
-This will run all 134 tests, with 5000 different inputs for each of the 48 random tests, then relaunch the tests with valgrind and 10 inputs/random test
+This will run all 134 tests, with 5000 different inputs for each of the 48 random tests, then relaunch the tests with valgrind and 10 inputs/random test.
+First, add the `-fPIC` flag to the compile flags (next to `-Wall -Wextra -Werror`). Run `make fclean` and `make bonus`. Then copy-paste:
 
 ```sh
 cc -o libft.so -shared **/*.o
