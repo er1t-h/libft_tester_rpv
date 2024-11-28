@@ -1,13 +1,11 @@
 use std::{
-    borrow::Cow,
-    env::current_dir,
-    ffi::CStr,
-    ops::{Deref, Index},
-    sync::LazyLock,
+    borrow::Cow, ffi::CStr, marker::PhantomData, ops::{Deref, Index}
 };
 
-use libc::{c_char, c_int, c_uint, c_void, size_t};
-use libloading::{Library, Symbol};
+mod functions;
+pub use functions::*;
+
+use libc::{c_char, c_void};
 
 pub struct OwnedCString(&'static CStr);
 
@@ -129,151 +127,143 @@ impl<T> OwnedCPointer<T> {
     }
 }
 
-pub static LIBRARY: LazyLock<Library> = LazyLock::new(|| unsafe {
-    Library::new(format!(
-        "{}/libft.so",
-        current_dir()
-            .expect("DPS: couldn't find the current directory")
-            .display()
-    ))
-    .expect("DPS: couldn't load the dynamic library")
-});
-
-macro_rules! function_wrapper {
-    () => {};
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) -> SplitTable; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) -> Option<SplitTable> {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) -> *mut *mut c_char> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            let ptr = f($($param_name),+);
-            if ptr.is_null() {
-                None
-            } else {
-                Some(SplitTable::new(ptr))
-            }
-        }
-        function_wrapper!($($rest)*);
-    };
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) -> OwnedCPointer<$return_type: ty>; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) -> Option<OwnedCPointer<$return_type>> {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) -> *mut $return_type> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            let ptr = f($($param_name),+);
-            if ptr.is_null() {
-                None
-            } else {
-                Some(OwnedCPointer(ptr))
-            }
-        }
-        function_wrapper!($($rest)*);
-    };
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) -> OwnedCString; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) -> Option<OwnedCString> {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) -> *mut c_char> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            let ptr = f($($param_name),+);
-            if ptr.is_null() {
-                None
-            } else {
-                Some(OwnedCString(CStr::from_ptr(ptr)))
-            }
-        }
-        function_wrapper!($($rest)*);
-    };
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) -> CStr; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) -> Option<&'static CStr> {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) -> *mut c_char> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            let ptr = f($($param_name),+);
-            if ptr.is_null() {
-                None
-            } else {
-                Some(CStr::from_ptr(ptr))
-            }
-        }
-        function_wrapper!($($rest)*);
-    };
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) -> *mut $return_type: ty; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) -> Option<*mut $return_type> {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) -> *mut $return_type> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            let ptr = f($($param_name),+);
-            if ptr.is_null() {
-                None
-            } else {
-                Some(ptr)
-            }
-        }
-        function_wrapper!($($rest)*);
-    };
-    ($function_name: ident ($($param_name: tt: $param_type: ty),+ $(,)?) $(-> $return_type: ty)?; $($rest: tt)*) => {
-        pub unsafe fn $function_name($($param_name: $param_type),+) $(-> $return_type)? {
-            let name = stringify!($function_name);
-            let f: Symbol<unsafe fn($($param_name: $param_type),+) $(-> $return_type)?> = LIBRARY.deref().get(name.as_bytes()).expect("function doesn't exist");
-            f($($param_name),+)
-        }
-        function_wrapper!($($rest)*);
-    };
-}
-
 #[repr(C)]
-pub struct TList {
+pub struct TListNode {
     pub data: *mut c_void,
-    pub next: *mut TList,
+    pub next: *mut TListNode,
 }
 
-function_wrapper! {
-    ft_isalpha(c: c_int) -> c_int;
-    ft_isdigit(c: c_int) -> c_int;
-    ft_isalnum(c: c_int) -> c_int;
-    ft_isascii(c: c_int) -> c_int;
-    ft_isprint(c: c_int) -> c_int;
+impl TListNode {
+    pub fn new_opt(data: *mut c_void) -> Option<*mut TListNode> {
+        unsafe {
+            ft_lstnew(data)
+        }
+    }
 
-    ft_toupper(c: c_int) -> c_int;
-    ft_tolower(c: c_int) -> c_int;
+    pub fn new_panicking(data: *mut c_void) -> *mut TListNode {
+        unsafe {
+            ft_lstnew(data).expect("ft_lstnew shouldn't return NULL")
+        }
+    }
 
-    ft_strlen(buffer: *const c_char) -> size_t;
-    ft_strlcpy(dest: *mut c_char, src: *const c_char, size: size_t) -> size_t;
-    ft_strlcat(dest: *mut c_char, src: *const c_char, size: size_t) -> size_t;
-    ft_strncmp(str1: *const c_char, str2: *const c_char, n: size_t) -> c_int;
-    ft_split(s: *const c_char, c: c_char) -> SplitTable;
-    ft_striteri(s: *mut c_char, f: Option<unsafe extern "C" fn(c_uint, *mut c_char)>);
+    pub fn new(data: *mut c_void) -> *mut TListNode {
+        unsafe {
+            ft_lstnew(data).unwrap_or(std::ptr::null_mut())
+        }
+    }
+}
 
-    ft_atoi(s: *const c_char) -> c_int;
+pub struct TListHandle {
+    destroyer: Option<unsafe extern "C" fn(*mut c_void)>,
+    front: *mut TListNode,
+}
 
-    ft_putchar_fd(c: c_char, fd: c_int);
-    ft_putendl_fd(s: *const c_char, fd: c_int);
-    ft_putstr_fd(s: *const c_char, fd: c_int);
-    ft_putnbr_fd(n: c_int, fd: c_int);
+impl TListHandle {
+    pub fn new(front: *mut TListNode, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) -> Self {
+        Self {
+            front,
+            destroyer,
+        }
+    }
 
-    ft_bzero(mem: *mut c_void, n: size_t);
-    ft_calloc(nb_element: size_t, size_of_element: size_t) -> OwnedCPointer<c_void>;
-    ft_memset(s: *mut c_void, c: c_int, n: size_t) -> *mut c_void;
-    ft_memcmp(s1: *const c_void, s2: *const c_void, n: size_t) -> c_int;
-    ft_memchr(s: *const c_void, c: c_int, n: size_t) -> *mut c_void;
-    ft_memcpy(dest: *mut c_void, src: *const c_void, n: size_t) -> *mut c_void;
-    ft_memmove(dest: *mut c_void, src: *const c_void, n: size_t) -> *mut c_void;
+    pub fn len(&self) -> usize {
+        (unsafe { ft_lstsize(self.front) }) as usize
+    }
 
-    ft_lstnew(content: *mut c_void) -> *mut TList;
-    ft_lstadd_back(alst: *mut *mut TList, new: *mut TList);
-    ft_lstadd_front(alst: *mut *mut TList, new: *mut TList);
-    ft_lstclear(lst: *mut *mut TList, del: Option<unsafe extern "C" fn(*mut c_void)>);
-    ft_lstdelone(lst: *mut TList, del: Option<unsafe extern "C" fn(*mut c_void)>);
-    ft_lstsize(list: *mut TList) -> c_int;
-    ft_lstlast(list: *mut TList) -> *mut TList;
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 
-    ft_lstiter(list: *mut TList, f: Option<unsafe extern "C" fn(*mut c_void)>);
-    ft_strchr(s1: *const c_char, c: c_int) -> CStr;
-    ft_strrchr(s1: *const c_char, c: c_int) -> CStr;
-    ft_strnstr(haystack: *const c_char, needle: *const c_char, len: size_t) -> CStr;
-    ft_strdup(s: *const c_char) -> OwnedCString;
-    ft_strjoin(s1: *const c_char, s2: *const c_char) -> OwnedCString;
-    ft_substr(s: *const c_char, start: c_uint, len: size_t) -> OwnedCString;
-    ft_strtrim(s1: *const c_char, set: *const c_char) -> OwnedCString;
-    ft_strmapi(s: *const c_char, f: Option<unsafe extern "C" fn(c_uint, c_char) -> c_char>) -> OwnedCString;
-    ft_lstmap(
-        list: *mut TList,
-        f: Option<unsafe extern "C" fn(*mut c_void) -> *mut c_void>,
-        del: Option<unsafe extern "C" fn(*mut c_void)>
-    );
+    pub fn remove_front(&mut self) {
+        if self.is_empty() {
+            return;
+        }
+        unsafe {
+            let next = (*self.front).next;
+            ft_lstdelone(self.front, self.destroyer);
+            self.front = next;
+        }
+    }
+
+    pub fn add_front(&mut self, data: *mut TListNode) {
+        unsafe { ft_lstadd_front(&mut self.front, data); }
+    }
+
+    pub fn add_back(&mut self, data: *mut TListNode) {
+        unsafe { ft_lstadd_back(&mut self.front, data); }
+    }
+
+    pub fn clear(&mut self) {
+        unsafe { ft_lstclear(&mut self.front, self.destroyer) }
+    }
+
+    pub fn last(&self) -> Option<*mut TListNode> {
+        unsafe { ft_lstlast(self.front) }
+    }
+
+    pub fn iter(&self) -> TListIter {
+        TListIter { inner: self.front, _phantom: PhantomData }
+    }
+
+    pub fn set_destroyer(&mut self, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) {
+        self.destroyer = destroyer;
+    }
+
+    pub fn with_destroyer(mut self, destroyer: Option<unsafe extern "C" fn (*mut c_void)>) -> Self {
+        self.set_destroyer(destroyer);
+        self
+    }
+
+    pub fn front_as_ptr(&self) -> *const TListNode {
+        self.front
+    }
+
+    pub fn front_as_ptr_mut(&mut self) -> *mut TListNode {
+        self.front
+    }
+}
+
+impl <P> FromIterator<*mut P> for TListHandle {
+    fn from_iter<T: IntoIterator<Item = *mut P>>(iter: T) -> Self {
+        let mut iter = iter.into_iter();
+        let Some(first_item) = iter.next() else {
+            return TListHandle::new(std::ptr::null_mut(), None);
+        };
+        let ret = TListHandle { front: TListNode::new_panicking(first_item.cast()), destroyer: None };
+        let mut current = ret.front;
+        for item in iter {
+            unsafe {
+                let new_node = TListNode::new_panicking(item.cast());
+                (*current).next = new_node;
+                current = new_node;
+            }
+        }
+        ret
+    }
+}
+
+impl Drop for TListHandle {
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
+pub struct TListIter<'a> {
+    inner: *const TListNode,
+    _phantom: PhantomData<&'a ()>
+}
+
+impl Iterator for TListIter<'_> {
+    type Item = *const c_void;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.inner.is_null() {
+            None
+        } else {
+            let prec = self.inner;
+            unsafe {
+                self.inner = (*prec).next;
+                Some((*prec).data)
+            }
+        }
+    }
 }

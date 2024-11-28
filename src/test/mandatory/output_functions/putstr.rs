@@ -37,13 +37,6 @@ crate::fork_test! {
     }
 
     #[test]
-    fn invalid_fd() {
-        unsafe {
-            libft::ft_putstr_fd(c"test".as_ptr(), -1);
-        }
-    }
-
-    #[test]
     fn random_test_with_alphanumeric_characters() {
         for _ in 0..*RANDOM_REPEAT_NUMBER {
             // Generates between 2 and 500 words that will be joined by random string

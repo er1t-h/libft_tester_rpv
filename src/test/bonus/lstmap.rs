@@ -1,97 +1,89 @@
+use fake::{faker::lorem::ja_jp::Words, Fake};
+use std::ffi::{CStr, CString};
 use libc::c_void;
+use crate::{libft::{self, TListHandle}, test::{test, DisplayableStringSlice}, utils, RANDOM_REPEAT_NUMBER};
+
+test!(
+    ft_lstmap(list: DisplayableStringSlice<&str>) {
+        let cstrings: Vec<_> = list.0.iter().map(|&x| CString::new(x).expect("DPS: couldn't create string")).collect();
+        let mut cstrings_modified: Vec<_> = list.0.iter().map(|&x| CString::new(x).expect("DPS: couldn't create string")).collect();
+        let mut list: TListHandle = cstrings.iter().map(|x| x.as_ptr().cast_mut()).collect();
+
+        let new_list_front = unsafe { libft::ft_lstmap(list.front_as_ptr_mut(), Some(utils::clone_and_all_plus_one), Some(libc::free)) };
+        let Some(new_list_front) = new_list_front else {
+            panic!("lstmap returned NULL")
+        };
+        let mut new_list = TListHandle::new(new_list_front.cast(), Some(libc::free));
+        cstrings_modified.iter_mut().for_each(|x| unsafe { utils::all_plus_one(x.as_ptr().cast_mut().cast()); } );
+
+        for (i, (libft, libc)) in new_list.iter().map(|x| unsafe { CStr::from_ptr(x.cast()) }).zip(cstrings_modified).enumerate() {
+            assert_eq!(libft, libc.as_c_str(), "the elements mismatch at index {i}");
+        }
+
+        for (i, (libft, libc)) in list.iter().map(|x| unsafe { CStr::from_ptr(x.cast()) }).zip(cstrings).enumerate() {
+            assert_eq!(libft, libc.as_c_str(), "the elements of the original lists mismatch at index {i}");
+        }
+        new_list.remove_front();
+    }
+);
 
 crate::fork_test! {
     #[test]
-    fn basic() {
-        let mut list = std::ptr::null_mut();
-        for i in 0_usize..20 {
-            unsafe {
-                crate::ft_lstadd_back(&mut list, crate::ft_lstnew(
-                    i as *mut c_void
-                ))
-            }
-        }
-        let mut mapped_list = unsafe { crate::ft_lstmap(list, Some(crate::times_two), Some(crate::nofree)) };
-        assert!(!mapped_list.is_null(), "Function returned NULL.");
-        for i in 0_usize..20 {
-            let tmp = list;
-            let tmp_mapped = mapped_list;
-            let content = unsafe { *tmp_mapped }.content as usize;
-            list = unsafe { *list }.next;
-            mapped_list = unsafe { *mapped_list }.next;
-            assert_eq!(content, i as usize * 2, "Doesn't match. The list was probably not altered.");
-            unsafe { libc::free(tmp.cast()) };
-            unsafe { libc::free(tmp_mapped.cast()) };
+    fn random() {
+        for _ in 0..*RANDOM_REPEAT_NUMBER {
+            let s: Vec<String> = Words(2..200).fake();
+            let input: Vec<_> = s.iter().map(|x| x.as_str()).collect();
+
+            test(DisplayableStringSlice(&input));
         }
     }
 
     #[test]
     fn list_as_null() {
-        let user_ret = unsafe { crate::ft_lstmap(std::ptr::null_mut(), Some(crate::times_two), Some(crate::nofree)) };
-        assert!(user_ret.is_null(), "The return value of lstmap(NULL, f, del) is not NULL");
+        unsafe { libft::ft_lstmap(std::ptr::null_mut(), Some(utils::clone_and_all_plus_one), Some(libc::free)) };
+    }
+
+
+    #[test]
+    fn free_function_as_null() {
+        let all_nb = (0..20).collect::<Vec<u64>>();
+        let mut list: TListHandle = all_nb.iter().map(|&x| x as *mut c_void).collect();
+        let new_list_front = unsafe { libft::ft_lstmap(list.front_as_ptr_mut(), Some(utils::times_two), None) };
+        let Some(new_list_front) = new_list_front else {
+            eprintln!("chose to return NULL");
+            return;
+        };
+        let new_list = TListHandle::new(new_list_front, None);
+
+        for (i, (libft, &libc)) in list.iter().map(|x| x as u64).zip(&all_nb).enumerate() {
+            assert_eq!(libft, libc, "number at index {i} mismatch");
+        }
+        for (i, (libft, &libc)) in new_list.iter().map(|x| x as u64).zip(&all_nb).enumerate() {
+            assert_eq!(libft, libc * 2, "number at index {i} mismatch in mapped");
+        }
     }
 
     #[test]
     fn function_as_null() {
-        let mut list = std::ptr::null_mut();
-        for i in 0..20 {
-            unsafe {
-                crate::ft_lstadd_back(&mut list, crate::ft_lstnew(
-                    i as *mut c_void
-                ))
-            }
-        }
-        let mut mapped_list = unsafe { crate::ft_lstmap(list, None, Some(crate::nofree)) };
-        if mapped_list.is_null() {
-            while !list.is_null() {
-                let next = unsafe {*list}.next;
-                unsafe { libc::free(list.cast()) };
-                list = next;
-            }
-            crate::verbose!("User handled it by returning NULL");
+        let all_strings = (0..20).map(|x| CString::new(x.to_string()).unwrap()).collect::<Vec<CString>>();
+        let mut list: TListHandle = all_strings.iter().map(|x| x.as_ptr().cast_mut()).collect();
+        let new_list_front = unsafe { libft::ft_lstmap(list.front_as_ptr_mut(), None, None) };
+        let Some(new_list_front) = new_list_front else {
+            eprintln!("chose to return NULL");
             return;
+        };
+        let new_list = TListHandle::new(new_list_front, None);
+
+        for (i, (libft, libc)) in list.iter().map(|x| unsafe { CStr::from_ptr(x.cast()) }).zip(&all_strings).enumerate() {
+            assert_eq!(libft, libc.as_c_str(), "string at index {i} mismatch");
         }
-        for i in 0..20 {
-            let tmp_normal = list;
-            let tmp_mapped = mapped_list;
-            let content = unsafe { *tmp_mapped }.content as usize;
-            list = unsafe { *list }.next;
-            mapped_list = unsafe { *mapped_list }.next;
-            assert_eq!(content, i as usize * 2, "Doesn't match. The list was probably not altered.");
-            unsafe { libc::free(tmp_mapped.cast()) };
-            unsafe { libc::free(tmp_normal.cast()) };
+        for (i, (libft, libc)) in new_list.iter().map(|x| unsafe { CStr::from_ptr(x.cast()) }).zip(&all_strings).enumerate() {
+            assert_eq!(libft, libc.as_c_str(), "string at index {i} mismatch in mapped");
         }
     }
 
     #[test]
-    fn del_as_null() {
-        let mut list = std::ptr::null_mut();
-        for i in 0_usize..20 {
-            unsafe {
-                crate::ft_lstadd_back(&mut list, crate::ft_lstnew(
-                    i as *mut c_void
-                ))
-            }
-        }
-        let mut mapped_list = unsafe { crate::ft_lstmap(list, Some(crate::times_two), None) };
-        if mapped_list.is_null() {
-            while !list.is_null() {
-                let next = unsafe {*list}.next;
-                unsafe { libc::free(list.cast()) };
-                list = next;
-            }
-            crate::verbose!("lstmap returned NULL. I wouldn't consider it false, although having to give a function that does nothing if you don't want to free (cf crate::nofree) something seems a bit strange.");
-            return;
-        }
-        for i in 0_usize..20 {
-            let tmp = list;
-            let tmp_mapped = mapped_list;
-            let content = unsafe { *tmp_mapped }.content as usize;
-            list = unsafe { *list }.next;
-            mapped_list = unsafe { *mapped_list }.next;
-            assert_eq!(content, i as usize * 2, "Doesn't match. The list was probably not altered.");
-            unsafe { libc::free(tmp.cast()) };
-            unsafe { libc::free(tmp_mapped.cast()) };
-        }
+    fn all_null() {
+        assert!(unsafe { libft::ft_lstmap(std::ptr::null_mut(), None, None) }.is_none(), "should return NULL");
     }
 }

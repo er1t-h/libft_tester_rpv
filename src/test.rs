@@ -5,7 +5,7 @@ use std::{
 
 mod mandatory;
 
-#[cfg(feature = "bonus")]
+// #[cfg(feature = "bonus")]
 mod bonus;
 
 ///
@@ -148,14 +148,14 @@ impl<T> PartialClone for Unprintable<T> {
 struct DisplayableStringSlice<'a, T: Clone + Display>(&'a [T]);
 impl<T: Clone + Display> Display for DisplayableStringSlice<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[")?;
+        write!(f, "{{")?;
         if let Some((first, rest)) = self.0.split_first() {
             write!(f, "\"{first}\"")?;
             for x in rest {
                 write!(f, ", \"{x}\"")?;
             }
         }
-        write!(f, "]")
+        write!(f, "}}")
     }
 }
 
@@ -163,13 +163,13 @@ impl<T: Clone + Display> Display for DisplayableStringSlice<'_, T> {
 struct DisplayableSlice<'a, T: Clone + Display>(&'a [T]);
 impl<T: Clone + Display> Display for DisplayableSlice<'_, T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[")?;
+        write!(f, "{{")?;
         if let Some((first, rest)) = self.0.split_first() {
             write!(f, "{first}")?;
             for x in rest {
                 write!(f, ", {x}")?;
             }
         }
-        write!(f, "]")
+        write!(f, "}}")
     }
 }

@@ -1,4 +1,8 @@
+use std::ffi::CStr;
+
 use libc::{c_char, c_uint, c_void};
+
+use crate::libft::ft_strdup;
 
 pub unsafe extern "C" fn no_free(_data: *mut c_void) {}
 
@@ -11,6 +15,13 @@ pub unsafe extern "C" fn all_plus_one(elt: *mut c_void) {
         }
         elt = elt.add(1);
     }
+}
+
+pub unsafe extern "C" fn clone_and_all_plus_one(elt: *mut c_void) -> *mut c_void {
+    let input = CStr::from_ptr(elt.cast());
+    let ptr = ft_strdup(input.as_ptr()).expect("strdup returned NULL").leak();
+    all_plus_one(ptr.cast());
+    ptr.cast()
 }
 
 pub unsafe extern "C" fn times_two(elt: *mut c_void) -> *mut c_void {
