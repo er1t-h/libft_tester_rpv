@@ -34,21 +34,5 @@ This will run all 134 tests, with 5000 different inputs for each of the 48 rando
 First, add the `-fPIC` flag to the compile flags (next to `-Wall -Wextra -Werror`). Run `make fclean` and `make bonus`. Then copy-paste:
 
 ```sh
-cc -o libft.so -shared -Wl,--whole-archive libft.a -Wl,--no-whole-archive
-wget https://github.com/er1t-h/libft_monkey_tester/releases/latest/download/libft_tester
-chmod +x libft_tester
-LIBFT_TESTER_RANDOM_REPEAT=5000 ./libft_tester
-if [ "$?" -eq 0 ]
-then
-	wget https://raw.githubusercontent.com/er1t-h/libft_monkey_tester/refs/heads/main/valgrind_suppression_files/patch_rusty_and_cargo_test.txt
-	valgrind --leak-check=full --show-leak-kinds=all --suppressions=patch_rusty_and_cargo_test.txt --log-file=libft_monkey_tester.log ./libft_tester
-	if [ "$?" -eq 0 ]
-	then
-		cat libft_monkey_tester.log
-	else
-		echo "You failed the valgrind tests"
-	fi
-else
-	echo "You failed some tests"
-fi 
+curl --proto '=https' --tlsv1.2 -sSf "https://raw.githubusercontent.com/er1t-h/42-monkey-tester-suite/refs/heads/main/libft.sh" | sh
 ```
